@@ -1,0 +1,141 @@
+// GET /api/groups/[groupId] - Get group detail with members
+
+import { NextRequest, NextResponse } from 'next/server';
+import { adminDb, COLLECTIONS } from '@/lib/firebase/admin';
+import { verifyToken } from '@/lib/utils';
+import type {
+  ApiResponse,
+  StudyGroup,
+  StudyGroupDetail,
+  GroupMemberInfo,
+  GroupMembershipStatus,
+  User,
+} from '@/types';
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ groupId: string }> }
+) {
+  try {
+    const { groupId } = await params;
+
+    // Get group
+    const groupDoc = await adminDb
+      .collection(COLLECTIONS.studyGroups)
+      .doc(groupId)
+      .get();
+
+    if (!groupDoc.exists) {
+      return NextResponse.json<ApiResponse<null>>(
+        { data: null, message: 'Không tìm thấy nhóm học', statusCode: 404 },
+        { status: 404 }
+      );
+    }
+
+    const group = groupDoc.data() as StudyGroup;
+
+    // Optional auth
+    let userId: string | null = null;
+    const authHeader = request.headers.get('Authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const payload = verifyToken(token);
+      if (payload) {
+        userId = payload.userId;
+      }
+    }
+
+    // Get all members of this group
+    const membersSnapshot = await adminDb
+      .collection(COLLECTIONS.groupMembers)
+      .where('groupId', '==', groupId)
+      .where('status', '==', 'active')
+      .get();
+
+    // Get user info for each member
+    const memberUserIds = membersSnapshot.docs.map(doc => doc.data().userId);
+    const members: GroupMemberInfo[] = [];
+
+    if (memberUserIds.length > 0) {
+      // Fetch user details in batches of 10 (Firestore 'in' limit)
+      for (let i = 0; i < memberUserIds.length; i += 10) {
+        const batch = memberUserIds.slice(i, i + 10);
+        const usersSnapshot = await adminDb
+          .collection(COLLECTIONS.users)
+          .where('id', 'in', batch)
+          .get();
+
+        const usersMap: Record<string, User> = {};
+        usersSnapshot.docs.forEach(doc => {
+          const user = doc.data() as User;
+          usersMap[user.id] = user;
+        });
+
+        membersSnapshot.docs
+          .filter(doc => batch.includes(doc.data().userId))
+          .forEach(doc => {
+            const memberData = doc.data();
+            const user = usersMap[memberData.userId];
+            if (user) {
+              const nameParts = user.fullName.split(' ');
+              const avatar = nameParts.length >= 2
+                ? (nameParts[nameParts.length - 2][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+                : user.fullName.slice(0, 2).toUpperCase();
+
+              members.push({
+                id: memberData.id,
+                userId: memberData.userId,
+                name: user.fullName,
+                avatar,
+                role: memberData.role,
+                status: memberData.status,
+                joinedAt: memberData.joinedAt?.toDate?.() || memberData.joinedAt,
+              });
+            }
+          });
+      }
+    }
+
+    // Sort: admin first, then moderator, then member
+    const roleOrder = { admin: 0, moderator: 1, member: 2 };
+    members.sort((a, b) => roleOrder[a.role] - roleOrder[b.role]);
+
+    // Check user membership
+    let userMembershipStatus: GroupMembershipStatus = 'none';
+    let userMemberRole: GroupMemberInfo['role'] | undefined;
+
+    if (userId) {
+      const userMembershipSnapshot = await adminDb
+        .collection(COLLECTIONS.groupMembers)
+        .where('groupId', '==', groupId)
+        .where('userId', '==', userId)
+        .limit(1)
+        .get();
+
+      if (!userMembershipSnapshot.empty) {
+        const memberData = userMembershipSnapshot.docs[0].data();
+        userMembershipStatus = memberData.status === 'active' ? 'member' : 'pending';
+        userMemberRole = memberData.role;
+      }
+    }
+
+    const result: StudyGroupDetail = {
+      ...group,
+      userMembershipStatus,
+      userMemberRole,
+      members,
+    };
+
+    return NextResponse.json<ApiResponse<StudyGroupDetail>>({
+      data: result,
+      message: 'Lấy thông tin nhóm học thành công',
+      statusCode: 200,
+    });
+  } catch (error) {
+    console.error('GET /api/groups/[groupId] error:', error);
+    return NextResponse.json<ApiResponse<null>>(
+      { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
+      { status: 500 }
+    );
+  }
+}
