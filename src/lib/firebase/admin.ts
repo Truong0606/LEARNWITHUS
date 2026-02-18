@@ -31,18 +31,30 @@ function initializeFirebaseAdmin() {
   // Fallback: Use environment variables (Vercel / production)
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+  let privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
   if (!projectId || !clientEmail || !privateKey) {
     console.warn('⚠ Firebase Admin: missing env vars, skipping initialization (build-time is OK)');
     return;
   }
 
-  admin.initializeApp({
-    credential: admin.credential.cert({ projectId, clientEmail, privateKey } as admin.ServiceAccount),
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  });
-  console.log('✅ Firebase Admin initialized with env variables');
+  // Handle various private key formats from env vars
+  // Strip surrounding quotes if present (Vercel stores them literally)
+  if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+    privateKey = privateKey.slice(1, -1);
+  }
+  // Convert literal \n to actual newlines
+  privateKey = privateKey.replace(/\\n/g, '\n');
+
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert({ projectId, clientEmail, privateKey } as admin.ServiceAccount),
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    });
+    console.log('✅ Firebase Admin initialized with env variables');
+  } catch (error) {
+    console.error('❌ Firebase Admin init failed with env vars:', error);
+  }
 }
 
 function getFirebaseAdmin() {
