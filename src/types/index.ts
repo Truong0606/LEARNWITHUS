@@ -329,6 +329,52 @@ export interface GroupMemberInfo {
 }
 
 // ============================================
+// COMMUNITY POST TYPES
+// ============================================
+
+export type PostVisibility = 'public' | 'group';
+
+export interface CommunityPost extends BaseEntity {
+  authorId: string;
+  authorName: string;
+  authorAvatar: string; // initials e.g. "HM"
+  authorTag: string; // e.g. "SV - Khoa CNTT"
+  groupId: string | null;
+  groupName: string | null;
+  title: string;
+  body: string;
+  tags: string[];
+  images: string[];
+  likesCount: number;
+  commentsCount: number;
+  sharesCount: number;
+  likedBy: string[]; // array of userIds
+  savedBy: string[]; // array of userIds
+  pinned: boolean;
+  anonymous: boolean;
+}
+
+export interface CommunityComment extends BaseEntity {
+  postId: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
+  body: string;
+  parentId: string | null; // null = top-level, else reply
+  likesCount: number;
+  likedBy: string[];
+}
+
+// Mentor Request
+export interface MentorRequest extends BaseEntity {
+  fullName: string;
+  email: string;
+  subject: string;
+  goal: string;
+  status: 'pending' | 'contacted' | 'matched';
+}
+
+// ============================================
 // DTOs - Data Transfer Objects
 // ============================================
 

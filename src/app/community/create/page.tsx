@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Header, Footer } from '@/components/shared';
 import {
   ArrowLeft,
   ImagePlus,
+  Loader2,
   Send,
   X,
   Hash,
@@ -14,15 +15,6 @@ import {
   EyeOff,
   Eye,
 } from 'lucide-react';
-
-const GROUPS = [
-  { id: '', name: 'Tất cả (không chọn nhóm)' },
-  { id: 'g1', name: 'Giải tích 1 - Nhóm 7' },
-  { id: 'g2', name: 'Lập trình Web K21' },
-  { id: 'g3', name: 'AI cơ bản - K20' },
-  { id: 'g4', name: 'CSDL nâng cao' },
-  { id: 'g5', name: 'IELTS 6.5+ Club' },
-];
 
 const SUGGESTED_TAGS = [
   'Toán', 'Lập trình', 'AI', 'CSDL', 'Tiếng Anh', 'Ôn thi',
@@ -41,6 +33,31 @@ export default function CreatePostPage() {
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [anonymous, setAnonymous] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
+
+  // Fetch user's joined groups from API
+  const fetchGroups = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch('/api/groups', { headers });
+      const data = await res.json();
+      if (res.ok && data.data) {
+        const joinedGroups = data.data
+          .filter((g: { userMembershipStatus: string }) => g.userMembershipStatus === 'member')
+          .map((g: { id: string; name: string }) => ({ id: g.id, name: g.name }));
+        setGroups(joinedGroups);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchGroups();
+  }, [fetchGroups]);
 
   const canSubmit = title.trim() || body.trim() || images.length > 0;
   const charCount = body.length;
@@ -101,11 +118,41 @@ export default function CreatePostPage() {
   const handleSubmit = async () => {
     if (!canSubmit) return;
 
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
     setLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setLoading(false);
-    router.push('/community');
+    try {
+      const res = await fetch('/api/community', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: title.trim(),
+          body: body.trim(),
+          groupId: groupId || undefined,
+          tags,
+          anonymous,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.data?.id) {
+        router.push(`/community/${data.data.id}`);
+      } else {
+        setErrors({ submit: data.message || 'Có lỗi xảy ra' });
+      }
+    } catch {
+      setErrors({ submit: 'Lỗi kết nối. Vui lòng thử lại.' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -160,7 +207,8 @@ export default function CreatePostPage() {
               onChange={(e) => setGroupId(e.target.value)}
               className="w-full px-4 py-3 text-sm bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all"
             >
-              {GROUPS.map((g) => (
+              <option value="">Tất cả (không chọn nhóm)</option>
+              {groups.map((g) => (
                 <option key={g.id} value={g.id}>
                   {g.name}
                 </option>
@@ -200,19 +248,7 @@ export default function CreatePostPage() {
           {/* Image Upload */}
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={images.length >= 3}
-                className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl border-2 border-dashed transition-all ${
-                  images.length >= 3
-                    ? 'text-gray-300 border-gray-200 cursor-not-allowed'
-                    : 'text-violet-600 border-violet-300 hover:bg-violet-50'
-                }`}
-              >
-                <ImagePlus size={18} />
-                Thêm ảnh ({images.length}/3)
-              </button>
+
               <input
                 ref={fileInputRef}
                 type="file"
@@ -316,9 +352,14 @@ export default function CreatePostPage() {
             </button>
           </div>
 
+          {/* Error */}
+          {errors.submit && (
+            <p className="text-sm text-center text-red-500 font-medium">{errors.submit}</p>
+          )}
+
           {/* Hint */}
           <p className="text-xs text-gray-400 text-center">
-            Nhập tối đa 2000 ký tự • Tải lên tối đa 3 ảnh (mỗi ảnh max 5MB)
+            Nhập tối đa 2000 ký tự
           </p>
         </div>
       </main>

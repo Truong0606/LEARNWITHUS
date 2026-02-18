@@ -64,11 +64,53 @@ export default function CreateGroupPage() {
       return;
     }
 
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
     setLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setLoading(false);
-    router.push('/groups/g-new');
+    try {
+      const COVER_COLORS = [
+        'from-violet-500 to-purple-600',
+        'from-pink-500 to-rose-600',
+        'from-emerald-500 to-teal-600',
+        'from-amber-500 to-orange-600',
+        'from-indigo-500 to-blue-600',
+        'from-cyan-500 to-blue-600',
+        'from-rose-500 to-pink-600',
+        'from-fuchsia-500 to-purple-600',
+      ];
+      const randomColor = COVER_COLORS[Math.floor(Math.random() * COVER_COLORS.length)];
+
+      const res = await fetch('/api/groups', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: name.trim(),
+          description: description.trim(),
+          subjectTags: tags,
+          isPrivate,
+          coverColor: randomColor,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.data?.id) {
+        router.push(`/groups/${data.data.id}`);
+      } else {
+        setErrors({ name: data.message || 'Có lỗi xảy ra khi tạo nhóm' });
+      }
+    } catch {
+      setErrors({ name: 'Lỗi kết nối. Vui lòng thử lại.' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

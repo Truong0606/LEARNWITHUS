@@ -1,5 +1,6 @@
 import { Footer, Header } from "@/components/shared";
-import { CheckCircle, GraduationCap, Send } from "lucide-react";
+import { CheckCircle, GraduationCap } from "lucide-react";
+import MentorForm from "./MentorForm";
 
 export const metadata = {
   title: "Mentor | StudyHub",
@@ -56,57 +57,8 @@ export default function ContactPage() {
                 </ul>
               </div>
 
-              {/* Form */}
-              <div className="p-8 bg-white rounded-2xl border border-pink-100 shadow-lg">
-                <h2 className="mb-6 text-xl font-semibold text-gray-800">
-                  Gửi yêu cầu mentor
-                </h2>
-                <form className="space-y-4">
-                  <div>
-                    <label className="block mb-1.5 text-sm font-medium text-gray-700">
-                      Họ và tên
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-3 text-sm border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                      placeholder="Nguyễn Văn A"
-                    />
-                  </div>
-                  <div>
-                    <label className="block mb-1.5 text-sm font-medium text-gray-700">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      className="w-full px-4 py-3 text-sm border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                      placeholder="email@studyhub.vn"
-                    />
-                  </div>
-                  <div>
-                    <label className="block mb-1.5 text-sm font-medium text-gray-700">
-                      Môn học quan tâm
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-3 text-sm border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                      placeholder="VD: Lập trình Web"
-                    />
-                  </div>
-                  <div>
-                    <label className="block mb-1.5 text-sm font-medium text-gray-700">
-                      Mục tiêu học tập
-                    </label>
-                    <textarea
-                      className="w-full px-4 py-3 text-sm border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent min-h-[120px] resize-none"
-                      placeholder="Mô tả mục tiêu của bạn..."
-                    />
-                  </div>
-                  <button className="w-full inline-flex items-center justify-center gap-2 py-3 text-sm font-semibold text-white bg-gradient-to-r from-violet-500 to-pink-500 rounded-xl hover:shadow-lg hover:shadow-pink-200 transition-all">
-                    <Send size={18} />
-                    Gửi yêu cầu
-                  </button>
-                </form>
-              </div>
+              {/* Form (Client Component) */}
+              <MentorForm />
             </div>
           </div>
         </section>

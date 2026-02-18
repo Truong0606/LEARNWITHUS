@@ -115,60 +115,23 @@ function ConfirmModal({
   );
 }
 
-// ─── Mock Posts (will be replaced later) ─────────────────────
+// ─── Group Post Types ─────────────────────────────────────────
 interface GroupPost {
   id: string;
-  author: { id: string; name: string; avatar: string };
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
   title: string;
   body: string;
   tags: string[];
-  created_at: string;
-  likes: number;
-  comments: number;
-  liked: boolean;
+  createdAt: string;
+  likesCount: number;
+  commentsCount: number;
+  liked_by_user: boolean;
   pinned: boolean;
 }
 
-const MOCK_POSTS: GroupPost[] = [
-  {
-    id: 'gp1',
-    author: { id: 'u1', name: 'Nguyễn Hà My', avatar: 'HM' },
-    title: 'Tài liệu ôn tập chương 5 - Tích phân',
-    body: 'Mình upload file PDF tổng hợp các dạng tích phân thường gặp trong đề thi. Bao gồm: tích phân xác định, suy rộng loại 1 & 2, đổi biến và tích phân từng phần.',
-    tags: ['Tài liệu', 'Tích phân'],
-    created_at: '1 giờ trước',
-    likes: 18,
-    comments: 7,
-    liked: false,
-    pinned: true,
-  },
-  {
-    id: 'gp2',
-    author: { id: 'u2', name: 'Trần Đức Anh', avatar: 'ĐA' },
-    title: 'Lịch họp tuần này: T5 19:30',
-    body: 'Tuần này mình họp vào thứ 5 nhé. Nội dung: review bài tập chương 5 + giải đề thi mẫu. Link Google Meet sẽ gửi trước 30 phút.',
-    tags: ['Lịch họp'],
-    created_at: '3 giờ trước',
-    likes: 12,
-    comments: 4,
-    liked: true,
-    pinned: false,
-  },
-  {
-    id: 'gp3',
-    author: { id: 'u3', name: 'Lê Phúc Long', avatar: 'PL' },
-    title: 'Hỏi bài tập 5.3 - Tích phân đường',
-    body: 'Các bạn ơi giúp mình bài 5.3 với. Mình tính đường cong C nhưng kết quả khác đáp án. Mình đã parameterize r(t) = (cos t, sin t) nhưng...',
-    tags: ['Hỏi đáp'],
-    created_at: '5 giờ trước',
-    likes: 4,
-    comments: 6,
-    liked: false,
-    pinned: false,
-  },
-];
-
-const GROUP_RULES = [
+const DEFAULT_RULES = [
   'Tôn trọng mọi thành viên',
   'Không spam hoặc quảng cáo',
   'Chia sẻ tài liệu có nguồn gốc',
@@ -195,10 +158,45 @@ function getAvatarColor(id: string) {
 
 type GroupTab = 'feed' | 'members' | 'docs' | 'events';
 
+function timeAgo(dateStr: string): string {
+  if (!dateStr) return '';
+  const now = Date.now();
+  const date = new Date(dateStr).getTime();
+  if (isNaN(date)) return dateStr;
+  const diff = now - date;
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return 'Vừa xong';
+  if (minutes < 60) return `${minutes} phút trước`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} giờ trước`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} ngày trước`;
+  return new Date(dateStr).toLocaleDateString('vi-VN');
+}
+
 // ─── Post Card ─────────────────
 function GroupPostCard({ post, isAdmin }: { post: GroupPost; isAdmin: boolean }) {
-  const [liked, setLiked] = useState(post.liked);
-  const [likeCount, setLikeCount] = useState(post.likes);
+  const router = useRouter();
+  const [liked, setLiked] = useState(post.liked_by_user);
+  const [likeCount, setLikeCount] = useState(post.likesCount);
+
+  const handleLike = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) { router.push('/login'); return; }
+
+    setLiked(!liked);
+    setLikeCount(p => liked ? p - 1 : p + 1);
+
+    try {
+      await fetch(`/api/community/${post.id}/like`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+    } catch {
+      setLiked(liked);
+      setLikeCount(post.likesCount);
+    }
+  };
 
   return (
     <article className={`p-5 bg-white rounded-2xl border transition-all hover:shadow-md ${post.pinned ? 'border-amber-300 ring-1 ring-amber-100' : 'border-gray-100'}`}>
@@ -208,30 +206,34 @@ function GroupPostCard({ post, isAdmin }: { post: GroupPost; isAdmin: boolean })
         </div>
       )}
       <div className="flex items-center gap-3 mb-3">
-        <div className={`flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br ${getAvatarColor(post.author.id)} text-white font-semibold text-xs`}>
-          {post.author.avatar}
+        <div className={`flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br ${getAvatarColor(post.authorId)} text-white font-semibold text-xs`}>
+          {post.authorAvatar}
         </div>
         <div>
-          <span className="text-sm font-semibold text-gray-800">{post.author.name}</span>
-          <span className="text-xs text-gray-400 ml-2">{post.created_at}</span>
+          <span className="text-sm font-semibold text-gray-800">{post.authorName}</span>
+          <span className="text-xs text-gray-400 ml-2">{timeAgo(post.createdAt)}</span>
         </div>
       </div>
       <Link href={`/community/${post.id}`} className="block group">
-        <h3 className="text-base font-semibold text-gray-800 group-hover:text-violet-600 transition-colors mb-1">
-          {post.title}
-        </h3>
+        {post.title && (
+          <h3 className="text-base font-semibold text-gray-800 group-hover:text-violet-600 transition-colors mb-1">
+            {post.title}
+          </h3>
+        )}
         <p className="text-sm text-gray-600 line-clamp-2">{post.body}</p>
       </Link>
-      <div className="flex flex-wrap gap-1.5 mt-2">
-        {post.tags.map((tag) => (
-          <span key={tag} className="px-2 py-0.5 text-xs font-medium text-violet-600 bg-violet-50 rounded-full">
-            #{tag}
-          </span>
-        ))}
-      </div>
+      {post.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {post.tags.map((tag) => (
+            <span key={tag} className="px-2 py-0.5 text-xs font-medium text-violet-600 bg-violet-50 rounded-full">
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
       <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100">
         <button
-          onClick={() => { setLiked(!liked); setLikeCount(p => liked ? p - 1 : p + 1); }}
+          onClick={handleLike}
           className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-all ${liked ? 'text-pink-600 bg-pink-50' : 'text-gray-500 hover:bg-gray-50'}`}
         >
           <Heart size={15} className={liked ? 'fill-pink-500' : ''} />
@@ -239,7 +241,7 @@ function GroupPostCard({ post, isAdmin }: { post: GroupPost; isAdmin: boolean })
         </button>
         <Link href={`/community/${post.id}`} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:bg-gray-50 transition-all">
           <MessageSquare size={15} />
-          {post.comments}
+          {post.commentsCount}
         </Link>
         {isAdmin && !post.pinned && (
           <button className="flex items-center gap-1 ml-auto px-2 py-1.5 rounded-lg text-xs text-gray-400 hover:text-amber-500 hover:bg-amber-50 transition-all">
@@ -263,6 +265,8 @@ export default function GroupDetailPage() {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [groupPosts, setGroupPosts] = useState<GroupPost[]>([]);
+  const [postsLoading, setPostsLoading] = useState(false);
 
   const isMember = group?.userMembershipStatus === 'member';
   const isAdmin = group?.userMemberRole === 'admin';
@@ -292,9 +296,29 @@ export default function GroupDetailPage() {
     }
   }, [groupId, router]);
 
+  const fetchGroupPosts = useCallback(async () => {
+    setPostsLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`/api/community?groupId=${groupId}`, { headers });
+      const data = await res.json();
+      if (res.ok && data.data) {
+        setGroupPosts(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching group posts:', error);
+    } finally {
+      setPostsLoading(false);
+    }
+  }, [groupId]);
+
   useEffect(() => {
     fetchGroup();
-  }, [fetchGroup]);
+    fetchGroupPosts();
+  }, [fetchGroup, fetchGroupPosts]);
 
   const handleJoin = async () => {
     const token = localStorage.getItem('token');
@@ -537,9 +561,22 @@ export default function GroupDetailPage() {
                     </Link>
                   )}
 
-                  {MOCK_POSTS.map((post) => (
-                    <GroupPostCard key={post.id} post={post} isAdmin={isAdmin} />
-                  ))}
+                  {postsLoading ? (
+                    <div className="py-12 text-center bg-white rounded-2xl border border-gray-100">
+                      <Loader2 size={32} className="mx-auto mb-3 text-violet-400 animate-spin" />
+                      <p className="text-sm text-gray-400">Đang tải bài viết...</p>
+                    </div>
+                  ) : groupPosts.length === 0 ? (
+                    <div className="py-12 text-center bg-white rounded-2xl border border-gray-100">
+                      <MessageSquare size={40} className="mx-auto mb-3 text-gray-300" />
+                      <p className="text-gray-500 font-medium">Chưa có bài viết nào</p>
+                      <p className="mt-1 text-sm text-gray-400">Hãy là người đầu tiên chia sẻ trong nhóm!</p>
+                    </div>
+                  ) : (
+                    groupPosts.map((post) => (
+                      <GroupPostCard key={post.id} post={post} isAdmin={isAdmin} />
+                    ))
+                  )}
                 </div>
               )}
 
@@ -662,7 +699,7 @@ export default function GroupDetailPage() {
               <div className="p-5 bg-white rounded-2xl border border-gray-100">
                 <h3 className="mb-3 text-sm font-semibold text-gray-800">Nội quy nhóm</h3>
                 <ol className="space-y-2">
-                  {GROUP_RULES.map((rule, i) => (
+                  {(group.rules && group.rules.length > 0 ? group.rules : DEFAULT_RULES).map((rule, i) => (
                     <li key={i} className="flex gap-2 text-sm text-gray-600">
                       <span className="flex items-center justify-center w-5 h-5 text-xs font-bold text-violet-600 bg-violet-50 rounded-full flex-shrink-0">
                         {i + 1}

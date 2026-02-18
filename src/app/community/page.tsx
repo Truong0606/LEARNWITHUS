@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Footer, Header } from '@/components/shared';
 import {
   Bookmark,
   BookmarkCheck,
   Heart,
+  Loader2,
   MessageSquare,
   MoreHorizontal,
   Plus,
@@ -20,129 +22,32 @@ import {
   Eye,
 } from 'lucide-react';
 
-// ─── Mock Data ────────────────────────────────────────────────
-interface Author {
+// ─── Types ────────────────────────────────────────────────────
+interface PostData {
   id: string;
-  name: string;
-  avatar: string;
-  tag: string;
-}
-
-interface Post {
-  id: string;
-  author: Author;
-  group_id: string | null;
-  group_name: string | null;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
+  authorTag: string;
+  groupId: string | null;
+  groupName: string | null;
   title: string;
   body: string;
-  images: string[];
   tags: string[];
-  created_at: string;
-  counts: { likes: number; comments: number; shares: number };
+  images: string[];
+  likesCount: number;
+  commentsCount: number;
+  sharesCount: number;
+  pinned: boolean;
+  anonymous: boolean;
+  createdAt: string;
   liked_by_user: boolean;
   saved_by_user: boolean;
-  pinned: boolean;
-  read: boolean;
 }
 
-const MOCK_POSTS: Post[] = [
-  {
-    id: '1',
-    author: { id: 'u1', name: 'Nguyễn Hà My', avatar: 'HM', tag: 'SV - Khoa CNTT' },
-    group_id: 'g1',
-    group_name: 'Giải tích 1 - Nhóm 7',
-    title: 'Cách giải nhanh tích phân suy rộng loại 2?',
-    body: 'Mình đang ôn thi cuối kỳ Giải tích 1 mà gặp khó ở phần tích phân suy rộng loại 2. Có bạn nào có mẹo giải nhanh không? Mình đã thử đổi biến nhưng vẫn chưa ra kết quả đúng...',
-    images: [],
-    tags: ['Toán', 'Giải tích', 'Ôn thi'],
-    created_at: '25 phút trước',
-    counts: { likes: 24, comments: 12, shares: 3 },
-    liked_by_user: false,
-    saved_by_user: false,
-    pinned: true,
-    read: false,
-  },
-  {
-    id: '2',
-    author: { id: 'u2', name: 'Trần Đức Anh', avatar: 'ĐA', tag: 'SV - Khoa HTTT' },
-    group_id: null,
-    group_name: null,
-    title: 'Chia sẻ tài liệu React + Next.js 15 cực chi tiết',
-    body: 'Mình vừa tổng hợp xong bộ tài liệu học React và Next.js 15 App Router. Bao gồm: Server Components, Client Components, Route Handlers, Server Actions. Bạn nào cần thì comment bên dưới mình gửi nhé!',
-    images: [],
-    tags: ['Lập trình', 'React', 'Next.js'],
-    created_at: '2 giờ trước',
-    counts: { likes: 56, comments: 31, shares: 18 },
-    liked_by_user: true,
-    saved_by_user: true,
-    pinned: false,
-    read: true,
-  },
-  {
-    id: '3',
-    author: { id: 'u3', name: 'Lê Phúc Long', avatar: 'PL', tag: 'SV - Khoa CNTT' },
-    group_id: 'g2',
-    group_name: 'AI cơ bản - K20',
-    title: 'Tìm nhóm làm đồ án cuối kỳ AI',
-    body: 'Nhóm mình đang thiếu 1 thành viên cho đồ án cuối kỳ AI. Đề tài: Nhận diện cảm xúc từ text sử dụng BERT. Yêu cầu: biết Python cơ bản, có thể họp online T3/T5 tối.',
-    images: [],
-    tags: ['AI', 'Đồ án', 'Tìm nhóm'],
-    created_at: '4 giờ trước',
-    counts: { likes: 8, comments: 5, shares: 2 },
-    liked_by_user: false,
-    saved_by_user: false,
-    pinned: false,
-    read: false,
-  },
-  {
-    id: '4',
-    author: { id: 'u4', name: 'Phạm Yến Nhi', avatar: 'YN', tag: 'SV - Khoa Kinh tế' },
-    group_id: null,
-    group_name: null,
-    title: 'Kinh nghiệm thi IELTS 7.0 cho sinh viên',
-    body: 'Sau 3 tháng ôn luyện, mình vừa đạt IELTS 7.0 (L: 7.5, R: 7.0, W: 6.5, S: 7.0). Mình xin chia sẻ lộ trình ôn tập và tài liệu đã sử dụng. Hi vọng giúp ích cho các bạn đang chuẩn bị thi...',
-    images: [],
-    tags: ['IELTS', 'Tiếng Anh', 'Kinh nghiệm'],
-    created_at: '6 giờ trước',
-    counts: { likes: 92, comments: 45, shares: 27 },
-    liked_by_user: false,
-    saved_by_user: false,
-    pinned: false,
-    read: true,
-  },
-  {
-    id: '5',
-    author: { id: 'u5', name: 'Hoàng Minh Tuấn', avatar: 'MT', tag: 'SV - Khoa CNTT' },
-    group_id: 'g3',
-    group_name: 'CSDL nâng cao',
-    title: 'Hỏi về chuẩn hóa 3NF và BCNF',
-    body: 'Có ai giải thích giúp mình sự khác biệt giữa 3NF và BCNF không? Mình đọc slide thầy mà vẫn chưa hiểu lắm, đặc biệt là khi nào thì 3NF và BCNF khác nhau.',
-    images: [],
-    tags: ['CSDL', 'Chuẩn hóa', 'Hỏi đáp'],
-    created_at: '8 giờ trước',
-    counts: { likes: 15, comments: 9, shares: 1 },
-    liked_by_user: false,
-    saved_by_user: false,
-    pinned: false,
-    read: false,
-  },
-  {
-    id: '6',
-    author: { id: 'u6', name: 'Vũ Thị Lan', avatar: 'TL', tag: 'SV - Khoa Toán' },
-    group_id: null,
-    group_name: null,
-    title: 'Review sách "Clean Code" cho người mới học lập trình',
-    body: 'Mình vừa đọc xong "Clean Code" của Robert C. Martin. Đây là cuốn sách cực kỳ hữu ích cho ai muốn viết code sạch và dễ bảo trì. Mình tóm tắt những điểm chính và ví dụ cụ thể...',
-    images: [],
-    tags: ['Review', 'Sách', 'Lập trình'],
-    created_at: '1 ngày trước',
-    counts: { likes: 67, comments: 22, shares: 14 },
-    liked_by_user: true,
-    saved_by_user: false,
-    pinned: false,
-    read: true,
-  },
-];
+// ─── Tab Filter Types ─────────────────────────────────────────
+type FeedTab = 'all' | 'group' | 'saved' | 'following';
+type TimeFilter = 'all' | 'today' | 'week';
 
 const TRENDING_TAGS = [
   { name: 'Ôn thi cuối kỳ', count: 234 },
@@ -151,16 +56,6 @@ const TRENDING_TAGS = [
   { name: 'IELTS', count: 143 },
   { name: 'Toán rời rạc', count: 98 },
 ];
-
-const SUGGESTED_GROUPS = [
-  { id: 'g1', name: 'Giải tích 1 - Nhóm 7', members: 24, subject: 'Toán' },
-  { id: 'g2', name: 'Lập trình Web K21', members: 56, subject: 'CNTT' },
-  { id: 'g3', name: 'IELTS 6.5+ Club', members: 89, subject: 'Tiếng Anh' },
-];
-
-// ─── Tab Filter Types ─────────────────────────────────────────
-type FeedTab = 'all' | 'group' | 'saved' | 'following';
-type TimeFilter = 'all' | 'today' | 'week';
 
 const avatarColors = [
   'from-violet-500 to-pink-500',
@@ -172,27 +67,67 @@ const avatarColors = [
 ];
 
 function getAvatarColor(id: string) {
-  const index = id.charCodeAt(1) % avatarColors.length;
-  return avatarColors[index];
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return avatarColors[Math.abs(hash) % avatarColors.length];
+}
+
+function timeAgo(dateStr: string): string {
+  if (!dateStr) return '';
+  const now = Date.now();
+  const date = new Date(dateStr).getTime();
+  if (isNaN(date)) return dateStr;
+  const diff = now - date;
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return 'Vừa xong';
+  if (minutes < 60) return `${minutes} phút trước`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} giờ trước`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days} ngày trước`;
+  return new Date(dateStr).toLocaleDateString('vi-VN');
 }
 
 // ─── Post Card Component ──────────────────────────────────────
-function PostCard({ post }: { post: Post }) {
+function PostCard({ post }: { post: PostData }) {
+  const router = useRouter();
   const [liked, setLiked] = useState(post.liked_by_user);
-  const [likeCount, setLikeCount] = useState(post.counts.likes);
+  const [likeCount, setLikeCount] = useState(post.likesCount);
   const [saved, setSaved] = useState(post.saved_by_user);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleLike = () => {
+  const handleLike = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    // Optimistic update
     setLiked(!liked);
-    setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
+    setLikeCount(prev => liked ? prev - 1 : prev + 1);
+
+    try {
+      await fetch(`/api/community/${post.id}/like`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+    } catch {
+      // Revert on error
+      setLiked(liked);
+      setLikeCount(post.likesCount);
+    }
   };
 
   return (
     <article
       className={`p-5 bg-white rounded-2xl border transition-all hover:shadow-md ${
         post.pinned ? 'border-amber-300 ring-1 ring-amber-100' : 'border-gray-100'
-      } ${post.read ? 'bg-gray-50/40' : 'bg-white'}`}
+      }`}
     >
       {/* Pinned badge */}
       {post.pinned && (
@@ -207,24 +142,25 @@ function PostCard({ post }: { post: Post }) {
         <div className="flex items-center gap-3">
           <div
             className={`flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br ${getAvatarColor(
-              post.author.id
+              post.authorId
             )} text-white font-semibold text-sm flex-shrink-0`}
           >
-            {post.author.avatar}
+            {post.authorAvatar}
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-semibold text-gray-800">{post.author.name}</span>
-              <span className="text-xs text-gray-400">{post.author.tag}</span>
+              <span className="text-sm font-semibold text-gray-800">{post.authorName}</span>
+              <span className="text-xs text-gray-400">{post.authorTag}</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-gray-400">{post.created_at}</span>
-              {post.group_name && (
+              <span className="text-xs text-gray-400">{timeAgo(post.createdAt)}</span>
+              {post.groupName && (
                 <Link
-                  href={`/groups/${post.group_id}`}
+                  href={`/groups/${post.groupId}`}
                   className="text-xs font-medium text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full hover:bg-violet-100 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  {post.group_name}
+                  {post.groupName}
                 </Link>
               )}
             </div>
@@ -234,7 +170,7 @@ function PostCard({ post }: { post: Post }) {
         {/* 3-dots menu */}
         <div className="relative">
           <button
-            onClick={() => setMenuOpen(!menuOpen)}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setMenuOpen(!menuOpen); }}
             className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
             aria-label="Tùy chọn bài viết"
           >
@@ -297,15 +233,15 @@ function PostCard({ post }: { post: Post }) {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-violet-500 transition-all"
           >
             <MessageSquare size={16} />
-            {post.counts.comments}
+            {post.commentsCount}
           </Link>
           <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:bg-gray-50 hover:text-blue-500 transition-all">
             <Share2 size={16} />
-            {post.counts.shares}
+            {post.sharesCount}
           </button>
         </div>
         <button
-          onClick={() => setSaved(!saved)}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSaved(!saved); }}
           className={`p-1.5 rounded-lg transition-all ${
             saved
               ? 'text-amber-500 bg-amber-50'
@@ -325,6 +261,55 @@ export default function CommunityPage() {
   const [activeTab, setActiveTab] = useState<FeedTab>('all');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [posts, setPosts] = useState<PostData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [suggestedGroups, setSuggestedGroups] = useState<{ id: string; name: string; membersCount: number; subjectTags: string[] }[]>([]);
+
+  const fetchPosts = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch('/api/community', { headers });
+      const data = await res.json();
+      if (res.ok && data.data) {
+        setPosts(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchSuggestedGroups = useCallback(async () => {
+    try {
+      const res = await fetch('/api/groups');
+      const data = await res.json();
+      if (res.ok && data.data) {
+        setSuggestedGroups(data.data.slice(0, 3).map((g: Record<string, unknown>) => ({
+          id: g.id,
+          name: g.name,
+          membersCount: g.membersCount,
+          subjectTags: g.subjectTags || [],
+        })));
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    fetchPosts();
+    fetchSuggestedGroups();
+  }, [fetchPosts, fetchSuggestedGroups]);
+
+  // Client-side filtering
+  const filteredPosts = posts.filter((p) => {
+    if (activeTab === 'group' && !p.groupId) return false;
+    if (activeTab === 'saved' && !p.saved_by_user) return false;
+    if (searchQuery && !p.title.toLowerCase().includes(searchQuery.toLowerCase()) && !p.body.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    return true;
+  });
 
   const tabs: { key: FeedTab; label: string }[] = [
     { key: 'all', label: 'Tất cả' },
@@ -396,17 +381,30 @@ export default function CommunityPage() {
         <div className="flex gap-6">
           {/* Main Feed */}
           <div className="flex-1 min-w-0 space-y-4">
-            {MOCK_POSTS.map((post) => (
-              <PostCard key={post.id} post={post} />
-            ))}
-
-            {/* Load More */}
-            <div className="flex justify-center pt-4 pb-8">
-              <button className="flex items-center gap-2 px-6 py-3 text-sm font-medium text-violet-600 bg-white border-2 border-violet-200 rounded-xl hover:bg-violet-50 transition-all">
-                <Eye size={16} />
-                Xem thêm bài viết
-              </button>
-            </div>
+            {loading ? (
+              <div className="py-16 text-center bg-white rounded-2xl border border-gray-100">
+                <Loader2 size={48} className="mx-auto mb-4 text-violet-400 animate-spin" />
+                <p className="text-gray-500">Đang tải bài viết...</p>
+              </div>
+            ) : filteredPosts.length === 0 ? (
+              <div className="py-16 text-center bg-white rounded-2xl border border-gray-100">
+                <MessageSquare size={48} className="mx-auto mb-4 text-gray-300" />
+                <p className="text-gray-500 font-medium">Chưa có bài viết nào</p>
+                <p className="mt-1 text-sm text-gray-400">Hãy là người đầu tiên chia sẻ!</p>
+                <Link
+                  href="/community/create"
+                  className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-violet-500 to-pink-500 rounded-xl"
+                >
+                  <Plus size={16} /> Tạo bài viết
+                </Link>
+              </div>
+            ) : (
+              <>
+                {filteredPosts.map((post) => (
+                  <PostCard key={post.id} post={post} />
+                ))}
+              </>
+            )}
           </div>
 
           {/* Sidebar (desktop only) */}
@@ -442,7 +440,7 @@ export default function CommunityPage() {
                 Nhóm gợi ý
               </h3>
               <div className="space-y-3">
-                {SUGGESTED_GROUPS.map((group) => (
+                {suggestedGroups.map((group) => (
                   <Link
                     key={group.id}
                     href={`/groups/${group.id}`}
@@ -452,11 +450,13 @@ export default function CommunityPage() {
                       <p className="text-sm font-medium text-gray-800 group-hover:text-violet-600 transition-colors">
                         {group.name}
                       </p>
-                      <p className="text-xs text-gray-400">{group.members} thành viên</p>
+                      <p className="text-xs text-gray-400">{group.membersCount} thành viên</p>
                     </div>
-                    <span className="px-2 py-1 text-xs font-medium text-violet-600 bg-violet-50 rounded-full">
-                      {group.subject}
-                    </span>
+                    {group.subjectTags[0] && (
+                      <span className="px-2 py-1 text-xs font-medium text-violet-600 bg-violet-50 rounded-full">
+                        {group.subjectTags[0]}
+                      </span>
+                    )}
                   </Link>
                 ))}
               </div>

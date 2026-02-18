@@ -67,6 +67,9 @@ export const COLLECTIONS = {
   otpCodes: 'otpCodes',
   studyGroups: 'studyGroups',
   groupMembers: 'groupMembers',
+  communityPosts: 'communityPosts',
+  communityComments: 'communityComments',
+  mentorRequests: 'mentorRequests',
 } as const;
 
 export default admin;
