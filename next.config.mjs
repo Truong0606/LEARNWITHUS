@@ -2,6 +2,10 @@
 const nextConfig = {
   reactCompiler: true,
   serverExternalPackages: ['firebase-admin'],
+  // Vercel best practice: optimize lucide-react imports (avoids loading 1,583 modules)
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+  },
   images: {
     remotePatterns: [
       {

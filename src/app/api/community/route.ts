@@ -106,16 +106,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get author info
-    const userDoc = await adminDb.collection(COLLECTIONS.users).doc(payload.userId).get();
+    // Parallel fetch: user and group are independent (async-parallel best practice)
+    const userDocPromise = adminDb.collection(COLLECTIONS.users).doc(payload.userId).get();
+    const groupDocPromise = groupId
+      ? adminDb.collection(COLLECTIONS.studyGroups).doc(groupId).get()
+      : Promise.resolve(null);
+
+    const [userDoc, groupDoc] = await Promise.all([userDocPromise, groupDocPromise]);
     const userData = userDoc.data();
     const authorName = anonymous ? 'Ẩn danh' : (userData?.fullName || payload.userName);
     const initials = authorName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
 
-    // Verify group if posting to a group
     let groupName: string | null = null;
-    if (groupId) {
-      const groupDoc = await adminDb.collection(COLLECTIONS.studyGroups).doc(groupId).get();
+    if (groupId && groupDoc) {
       if (!groupDoc.exists) {
         return NextResponse.json<ApiResponse<null>>(
           { data: null, message: 'Nhóm không tồn tại', statusCode: 404 },
