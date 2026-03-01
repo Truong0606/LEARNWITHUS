@@ -95,10 +95,10 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left Side - Illustration */}
-      <div className="relative flex-col items-center justify-center flex-1 hidden p-12 lg:flex bg-gradient-to-br from-violet-600 via-fuchsia-600 to-pink-600">
+      <div className="relative flex-col items-center justify-center flex-1 hidden p-12 lg:flex bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950">
         {/* Decorative elements */}
         <div className="absolute w-32 h-32 rounded-full top-10 left-10 bg-white/10 blur-2xl" />
-        <div className="absolute w-40 h-40 rounded-full bottom-20 right-10 bg-pink-400/20 blur-3xl" />
+        <div className="absolute w-40 h-40 rounded-full bottom-20 right-10 bg-slate-400/20 blur-3xl" />
         <div className="absolute w-24 h-24 rounded-full top-1/3 right-20 bg-amber-400/20 blur-2xl" />
 
         <div className="relative z-10 max-w-lg text-center text-white">
@@ -150,15 +150,15 @@ export default function LoginPage() {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="flex items-center justify-center flex-1 p-8 bg-gradient-to-br from-violet-50 via-white to-pink-50">
+      <div className="flex items-center justify-center flex-1 p-8 bg-gradient-to-br from-slate-50 via-white to-slate-50">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="flex justify-center mb-6 lg:hidden">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500">
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-slate-800">
                 <GraduationCap size={24} className="text-white" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
                 StudyHub
               </span>
             </Link>
@@ -166,7 +166,7 @@ export default function LoginPage() {
 
           {/* Header */}
           <div className="mb-8 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-violet-100 to-pink-100">
+            <div className="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200">
               <Lock size={28} className="text-violet-600" />
             </div>
             <h2 className="mb-2 text-3xl font-bold text-gray-800">Đăng Nhập</h2>
@@ -189,7 +189,7 @@ export default function LoginPage() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="email@university.edu.vn"
-                  className={`w-full py-3.5 pl-12 pr-4 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all ${
+                  className={`w-full py-3.5 pl-12 pr-4 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all ${
                     errors.email ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'
                   }`}
                   disabled={loading}
@@ -212,7 +212,7 @@ export default function LoginPage() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Nhập mật khẩu của bạn"
-                  className={`w-full py-3.5 pl-12 pr-12 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all ${
+                  className={`w-full py-3.5 pl-12 pr-12 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all ${
                     errors.password ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'
                   }`}
                   disabled={loading}
@@ -234,7 +234,7 @@ export default function LoginPage() {
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  className="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-violet-500"
+                  className="w-4 h-4 text-violet-600 border-gray-300 rounded focus:ring-slate-500"
                 />
                 <span className="text-sm text-gray-600">Ghi nhớ đăng nhập</span>
               </label>

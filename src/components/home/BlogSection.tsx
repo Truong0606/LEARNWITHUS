@@ -30,8 +30,8 @@ const posts: BlogPost[] = [
 ];
 
 const colorMap: Record<string, { bg: string; icon: string; border: string }> = {
-  violet: { bg: "bg-violet-50", icon: "text-violet-600", border: "border-violet-200" },
-  pink: { bg: "bg-pink-50", icon: "text-pink-600", border: "border-pink-200" },
+  violet: { bg: "bg-slate-50", icon: "text-slate-600", border: "border-slate-200" },
+  pink: { bg: "bg-slate-100", icon: "text-slate-600", border: "border-slate-200" },
   emerald: { bg: "bg-emerald-50", icon: "text-emerald-600", border: "border-emerald-200" },
 };
 
@@ -42,7 +42,7 @@ export default function BlogSection() {
         <div className="text-center mb-12">
           <h2 className="mb-4 text-2xl font-bold text-gray-800 md:text-3xl">
             Góc chia sẻ{" "}
-            <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
               kiến thức
             </span>
           </h2>

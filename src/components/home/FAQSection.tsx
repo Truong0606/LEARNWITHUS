@@ -45,12 +45,12 @@ export default function FAQSection() {
   };
 
   return (
-    <section className="py-16 md:py-20 bg-gradient-to-br from-violet-100 via-fuchsia-50 to-pink-100">
+    <section className="py-16 md:py-20 bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100">
       <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="mb-4 text-2xl font-bold text-gray-800 md:text-3xl">
             Câu hỏi{" "}
-            <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
               thường gặp
             </span>
           </h2>
@@ -64,8 +64,8 @@ export default function FAQSection() {
               key={faq.key}
               className={`mb-4 rounded-2xl border transition-all ${
                 openKey === faq.key
-                  ? "border-violet-200 bg-white shadow-lg shadow-violet-100/50"
-                  : "border-gray-200 bg-white/50 hover:border-violet-200"
+                  ? "border-slate-200 bg-white shadow-lg shadow-slate-100/50"
+                  : "border-gray-200 bg-white/50 hover:border-slate-200"
               }`}
             >
               <button
@@ -73,10 +73,10 @@ export default function FAQSection() {
                 className="flex items-center justify-between w-full p-5 text-left"
               >
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-xl ${openKey === faq.key ? "bg-violet-100" : "bg-gray-100"}`}>
+                  <div className={`p-2 rounded-xl ${openKey === faq.key ? "bg-slate-100" : "bg-gray-100"}`}>
                     <HelpCircle
                       size={18}
-                      className={openKey === faq.key ? "text-violet-600" : "text-gray-500"}
+                      className={openKey === faq.key ? "text-slate-600" : "text-gray-500"}
                     />
                   </div>
                   <span className="font-medium text-gray-800">
@@ -86,7 +86,7 @@ export default function FAQSection() {
                 <ChevronDown
                   size={20}
                   className={`text-gray-500 transition-transform ${
-                    openKey === faq.key ? "rotate-180 text-violet-600" : ""
+                    openKey === faq.key ? "rotate-180 text-slate-600" : ""
                   }`}
                 />
               </button>

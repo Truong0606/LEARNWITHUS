@@ -31,7 +31,7 @@ export default function TeamSection() {
         <div className="text-center mb-12">
           <h2 className="mb-4 text-2xl font-bold text-gray-800 md:text-3xl">
             Mentor{" "}
-            <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
               đồng hành
             </span>{" "}
             cùng bạn
@@ -46,7 +46,7 @@ export default function TeamSection() {
               key={index}
               className="text-center p-6 rounded-2xl border border-pink-100 bg-gradient-to-br from-violet-50/50 to-pink-50/50 hover:shadow-lg transition-all hover:-translate-y-1"
             >
-              <div className="relative w-24 h-24 mx-auto mb-4 overflow-hidden rounded-2xl ring-4 ring-pink-100 md:w-28 md:h-28">
+              <div className="relative w-24 h-24 mx-auto mb-4 overflow-hidden rounded-2xl ring-4 ring-slate-200 md:w-28 md:h-28">
                 <Image
                   src={member.image}
                   alt={member.name}
@@ -58,7 +58,7 @@ export default function TeamSection() {
               <h3 className="text-base font-semibold text-gray-800 md:text-lg">
                 {member.name}
               </h3>
-              <p className="text-sm text-pink-600">
+              <p className="text-sm text-slate-600">
                 {member.title}
               </p>
             </div>

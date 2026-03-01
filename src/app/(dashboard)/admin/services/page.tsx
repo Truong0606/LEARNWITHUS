@@ -435,7 +435,7 @@ export default function AdminServicesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-transparent">
         <Loading size="large" message="Đang tải dữ liệu dịch vụ..." />
       </div>
     );

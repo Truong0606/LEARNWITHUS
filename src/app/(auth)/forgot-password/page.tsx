@@ -117,7 +117,7 @@ export default function ForgotPasswordPage() {
   // Success screen
   if (step === 'success') {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-violet-50 via-white to-pink-50">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
         <div className="max-w-md p-8 text-center bg-white rounded-2xl shadow-xl border border-violet-100">
           <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-emerald-400 to-green-500">
             <CheckCircle size={40} className="text-white" />
@@ -128,7 +128,7 @@ export default function ForgotPasswordPage() {
           </p>
           <Link
             href="/login"
-            className="inline-flex items-center gap-2 px-6 py-3 text-white font-semibold bg-gradient-to-r from-violet-500 to-pink-500 rounded-xl hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-2 px-6 py-3 text-white font-semibold bg-gradient-to-br from-slate-600 to-slate-800 rounded-xl hover:shadow-lg transition-all"
           >
             <Sparkles size={18} />
             Đăng nhập ngay
@@ -141,10 +141,10 @@ export default function ForgotPasswordPage() {
   return (
     <div className="flex min-h-screen">
       {/* Left Side - Illustration */}
-      <div className="relative flex-col items-center justify-center flex-1 hidden p-12 lg:flex bg-gradient-to-br from-violet-600 via-fuchsia-600 to-pink-600">
+      <div className="relative flex-col items-center justify-center flex-1 hidden p-12 lg:flex bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950">
         {/* Decorative elements */}
         <div className="absolute w-32 h-32 rounded-full top-10 left-10 bg-white/10 blur-2xl" />
-        <div className="absolute w-40 h-40 rounded-full bottom-20 right-10 bg-pink-400/20 blur-3xl" />
+        <div className="absolute w-40 h-40 rounded-full bottom-20 right-10 bg-slate-400/20 blur-3xl" />
 
         <div className="relative z-10 max-w-lg text-center text-white">
           <div className="flex justify-center mb-8">
@@ -166,15 +166,15 @@ export default function ForgotPasswordPage() {
       </div>
 
       {/* Right Side - Form */}
-      <div className="flex items-center justify-center flex-1 p-8 bg-gradient-to-br from-violet-50 via-white to-pink-50">
+      <div className="flex items-center justify-center flex-1 p-8 bg-gradient-to-br from-slate-50 via-white to-slate-50">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="flex justify-center mb-6 lg:hidden">
             <Link href="/" className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500">
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-slate-800">
                 <GraduationCap size={24} className="text-white" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
                 StudyHub
               </span>
             </Link>
@@ -182,8 +182,8 @@ export default function ForgotPasswordPage() {
 
           {/* Header */}
           <div className="mb-8 text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-violet-100 to-pink-100">
-              <Unlock size={28} className="text-violet-600" />
+            <div className="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200">
+              <Unlock size={28} className="text-slate-600" />
             </div>
             <h2 className="mb-2 text-2xl font-bold text-gray-800">
               {step === 'email' ? 'Quên Mật Khẩu?' : 'Xác Nhận OTP'}
@@ -211,7 +211,7 @@ export default function ForgotPasswordPage() {
                       setErrors({});
                     }}
                     placeholder="email@university.edu.vn"
-                    className={`w-full py-3.5 pl-12 pr-4 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all ${
+                    className={`w-full py-3.5 pl-12 pr-4 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all ${
                       errors.email ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'
                     }`}
                     disabled={loading}
@@ -225,7 +225,7 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 text-base font-semibold text-white transition-all bg-gradient-to-r from-violet-500 to-pink-500 rounded-xl shadow-lg shadow-violet-200 hover:shadow-xl hover:shadow-pink-200 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3.5 text-base font-semibold text-white transition-all bg-gradient-to-br from-slate-600 to-slate-800 rounded-xl shadow-lg shadow-slate-200 hover:shadow-xl hover:shadow-slate-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -252,7 +252,7 @@ export default function ForgotPasswordPage() {
                     setErrors((prev) => ({ ...prev, otp: '' }));
                   }}
                   placeholder="Nhập mã 6 số"
-                  className={`w-full py-3.5 px-4 text-center text-2xl tracking-widest border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all ${
+                  className={`w-full py-3.5 px-4 text-center text-2xl tracking-widest border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all ${
                     errors.otp ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'
                   }`}
                   maxLength={6}
@@ -275,7 +275,7 @@ export default function ForgotPasswordPage() {
                     setErrors((prev) => ({ ...prev, password: '' }));
                   }}
                   placeholder="Tối thiểu 6 ký tự"
-                  className={`w-full py-3.5 px-4 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all ${
+                  className={`w-full py-3.5 px-4 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all ${
                     errors.password ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'
                   }`}
                   disabled={loading}
@@ -288,7 +288,7 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 text-base font-semibold text-white transition-all bg-gradient-to-r from-violet-500 to-pink-500 rounded-xl shadow-lg shadow-violet-200 hover:shadow-xl hover:shadow-pink-200 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3.5 text-base font-semibold text-white transition-all bg-gradient-to-br from-slate-600 to-slate-800 rounded-xl shadow-lg shadow-slate-200 hover:shadow-xl hover:shadow-slate-300 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -303,7 +303,7 @@ export default function ForgotPasswordPage() {
               <button
                 type="button"
                 onClick={() => setStep('email')}
-                className="w-full py-3 text-sm font-medium text-gray-600 hover:text-violet-600 transition-colors"
+                className="w-full py-3 text-sm font-medium text-gray-600 hover:text-slate-600 transition-colors"
               >
                 ← Quay lại nhập email khác
               </button>
@@ -314,7 +314,7 @@ export default function ForgotPasswordPage() {
           <div className="mt-8 text-center">
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 text-sm font-medium text-violet-600 hover:text-violet-800 transition-colors"
+              className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-violet-800 transition-colors"
             >
               <ArrowLeft size={16} />
               Quay lại đăng nhập

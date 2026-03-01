@@ -1,25 +1,75 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { DashboardHeader, StatsCard } from '@/components/dashboard';
 import { Loading } from '@/components/shared';
-import { Users, FileText, Calendar, TestTube, MessageSquare } from 'lucide-react';
+import {
+  Users,
+  MessageSquare,
+  GraduationCap,
+  BookOpen,
+  Timer,
+  TrendingUp,
+  ArrowUpRight,
+} from 'lucide-react';
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface DashboardStats {
   users: number;
-  blogs: number;
-  bookings: number;
-  tests: number;
-  feedbacks: number;
+  groups: number;
+  posts: number;
+  mentorRequests: number;
+  activeSessions: number;
 }
+
+// Mock chart data - Sinh viên mới & Bài viết mới
+const chartData = [
+  { name: 'T1', newUsers: 42, newPosts: 28 },
+  { name: 'T2', newUsers: 55, newPosts: 35 },
+  { name: 'T3', newUsers: 48, newPosts: 41 },
+  { name: 'T4', newUsers: 62, newPosts: 38 },
+  { name: 'T5', newUsers: 71, newPosts: 52 },
+  { name: 'T6', newUsers: 58, newPosts: 61 },
+  { name: 'T7', newUsers: 68, newPosts: 55 },
+  { name: 'T8', newUsers: 82, newPosts: 67 },
+  { name: 'T9', newUsers: 75, newPosts: 72 },
+  { name: 'T10', newUsers: 89, newPosts: 78 },
+];
+
+// Mock sinh viên mới đăng ký
+const mockNewUsers = [
+  { id: 1, name: 'Nguyễn Văn An', email: 'an.nguyen@edu.vn', university: 'ĐH Bách Khoa' },
+  { id: 2, name: 'Trần Thị Bình', email: 'binh.tran@edu.vn', university: 'ĐH Khoa học Tự nhiên' },
+  { id: 3, name: 'Lê Văn Cường', email: 'cuong.le@edu.vn', university: 'ĐH Kinh tế' },
+  { id: 4, name: 'Phạm Thị Dung', email: 'dung.pham@edu.vn', university: 'ĐH Sư phạm' },
+  { id: 5, name: 'Hoàng Văn Em', email: 'em.hoang@edu.vn', university: 'ĐH Công nghệ' },
+];
+
+// Mock bài viết mới trên cộng đồng
+const mockRecentPosts = [
+  { id: 'p1', title: 'Cách ôn thi Toán rời rạc hiệu quả', group: 'Toán rời rạc', likes: 24 },
+  { id: 'p2', title: 'Chia sẻ tài liệu React cho dự án cuối kỳ', group: 'Lập trình Web', likes: 18 },
+  { id: 'p3', title: 'Hỏi về thuật toán Dijkstra', group: 'Cấu trúc dữ liệu', likes: 12 },
+  { id: 'p4', title: 'Lịch học nhóm IELTS tuần này', group: 'IELTS', likes: 8 },
+  { id: 'p5', title: 'Tài liệu ôn AI - Machine Learning', group: 'Trí tuệ nhân tạo', likes: 31 },
+];
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats>({
     users: 0,
-    blogs: 0,
-    bookings: 0,
-    tests: 0,
-    feedbacks: 0,
+    groups: 0,
+    posts: 0,
+    mentorRequests: 0,
+    activeSessions: 0,
   });
   const [loading, setLoading] = useState(true);
   const [dateFilter, setDateFilter] = useState<'today' | 'week' | 'month' | 'year'>('month');
@@ -28,14 +78,13 @@ export default function AdminDashboardPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Simulate API call - replace with actual API calls
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 800));
         setStats({
-          users: 156,
-          blogs: 45,
-          bookings: 234,
-          tests: 189,
-          feedbacks: 67,
+          users: 1256,
+          groups: 48,
+          posts: 892,
+          mentorRequests: 23,
+          activeSessions: 67,
         });
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -48,15 +97,15 @@ export default function AdminDashboardPage() {
   }, [dateFilter]);
 
   const filterButtons = [
-    { key: 'today', label: 'Hôm nay' },
-    { key: 'week', label: 'Tuần này' },
-    { key: 'month', label: 'Tháng này' },
-    { key: 'year', label: 'Năm nay' },
-  ] as const;
+    { key: 'today' as const, label: 'Hôm nay' },
+    { key: 'week' as const, label: 'Tuần này' },
+    { key: 'month' as const, label: 'Tháng này' },
+    { key: 'year' as const, label: 'Năm nay' },
+  ];
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <Loading size="large" message="Đang tải dữ liệu..." />
       </div>
     );
@@ -64,58 +113,76 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardHeader title="📊 Thống kê quản trị" />
+      <DashboardHeader title="Tổng quan" />
 
       <div className="p-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 gap-6 mb-6 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <StatsCard
-            title="👥 Người dùng"
+            title="Sinh viên"
             value={stats.users}
             icon={Users}
             color="purple"
+            change="+12%"
+            changeType="increase"
           />
           <StatsCard
-            title="📝 Bài viết"
-            value={stats.blogs}
-            icon={FileText}
+            title="Nhóm học"
+            value={stats.groups}
+            icon={BookOpen}
             color="blue"
+            change="+5%"
+            changeType="increase"
           />
           <StatsCard
-            title="📅 Lịch hẹn"
-            value={stats.bookings}
-            icon={Calendar}
-            color="green"
-          />
-          <StatsCard
-            title="🧪 Xét nghiệm"
-            value={stats.tests}
-            icon={TestTube}
-            color="indigo"
-          />
-          <StatsCard
-            title="💬 Phản hồi"
-            value={stats.feedbacks}
+            title="Bài viết"
+            value={stats.posts}
             icon={MessageSquare}
+            color="green"
+            change="+18%"
+            changeType="increase"
+          />
+          <StatsCard
+            title="Yêu cầu Mentor"
+            value={stats.mentorRequests}
+            icon={GraduationCap}
+            color="indigo"
+            change="+8%"
+            changeType="increase"
+          />
+          <StatsCard
+            title="Pomodoro đang chạy"
+            value={stats.activeSessions}
+            icon={Timer}
             color="orange"
           />
         </div>
 
         {/* Chart Section */}
-        <div className="p-6 bg-white shadow-xl rounded-2xl">
-          <div className="flex flex-col justify-between mb-6 sm:flex-row sm:items-center">
-            <h2 className="text-xl font-semibold text-gray-800">
-              📈 Hoạt động theo thời gian
-            </h2>
-            <div className="flex flex-wrap gap-2 mt-4 sm:mt-0">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+          <div className="flex flex-col justify-between border-b border-gray-100 px-6 py-5 sm:flex-row sm:items-center">
+            <div className="flex items-center gap-2">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100">
+                <TrendingUp size={20} className="text-violet-600" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-800">
+                  Hoạt động cộng đồng
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Sinh viên mới đăng ký và bài viết mới trên diễn đàn
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2 sm:mt-0">
               {filterButtons.map(({ key, label }) => (
                 <button
                   key={key}
                   onClick={() => setDateFilter(key)}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition duration-200 ${
+                  className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
                     dateFilter === key
-                      ? 'bg-blue-500 text-white shadow'
-                      : 'bg-gray-100 text-gray-700 hover:bg-blue-100'
+                      ? 'bg-violet-600 text-white shadow-md shadow-violet-200'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   {label}
@@ -124,46 +191,99 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Placeholder for chart - in production, use recharts */}
-          <div className="flex items-center justify-center bg-gray-100 rounded-lg h-96">
-            <div className="text-center">
-              <p className="text-gray-500">
-                Biểu đồ thống kê hoạt động
-              </p>
-              <p className="mt-2 text-sm text-gray-400">
-                (Tích hợp Recharts cho biểu đồ chi tiết)
-              </p>
+          <div className="p-6">
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="colorNewUsers" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorNewPosts" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="name" stroke="#94a3b8" fontSize={12} />
+                  <YAxis stroke="#94a3b8" fontSize={12} />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: '12px',
+                      border: '1px solid #e2e8f0',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                    }}
+                    labelStyle={{ color: '#64748b' }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="newUsers"
+                    stroke="#8b5cf6"
+                    strokeWidth={2}
+                    fill="#8b5cf6"
+                    fillOpacity={0.2}
+                    name="Sinh viên mới"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="newPosts"
+                    stroke="#10b981"
+                    strokeWidth={2}
+                    fill="#10b981"
+                    fillOpacity={0.2}
+                    name="Bài viết mới"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-6 border-t border-gray-100 pt-4">
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-violet-500" />
+                <span className="text-sm text-gray-600">Sinh viên mới đăng ký</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="h-3 w-3 rounded-full bg-emerald-500" />
+                <span className="text-sm text-gray-600">Bài viết mới</span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Recent Activity */}
-        <div className="grid grid-cols-1 gap-6 mt-6 lg:grid-cols-2">
-          {/* Recent Users */}
-          <div className="p-6 bg-white shadow-lg rounded-2xl">
-            <h3 className="mb-4 text-lg font-semibold text-gray-800">
-              Người dùng mới
-            </h3>
-            <div className="space-y-4">
-              {[1, 2, 3, 4, 5].map((i) => (
+        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Sinh viên mới đăng ký */}
+          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Sinh viên mới đăng ký
+              </h3>
+              <Link
+                href="/admin/users"
+                className="flex items-center gap-1 text-sm font-medium text-violet-600 hover:text-violet-700"
+              >
+                Xem tất cả
+                <ArrowUpRight size={16} />
+              </Link>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {mockNewUsers.map((user) => (
                 <div
-                  key={i}
-                  className="flex items-center justify-between p-3 transition-colors rounded-lg bg-gray-50 hover:bg-gray-100"
+                  key={user.id}
+                  className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-gray-50/80"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full">
-                      <Users size={18} className="text-blue-600" />
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-100 text-violet-600 font-semibold">
+                      {user.name.charAt(0)}
                     </div>
                     <div>
-                      <p className="font-medium text-gray-800">
-                        Nguyễn Văn {String.fromCharCode(64 + i)}
-                      </p>
+                      <p className="font-medium text-gray-800">{user.name}</p>
                       <p className="text-sm text-gray-500">
-                        user{i}@example.com
+                        {user.email} • {user.university}
                       </p>
                     </div>
                   </div>
-                  <span className="px-2 py-1 text-xs font-medium text-green-700 bg-green-100 rounded-full">
+                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600">
                     Mới
                   </span>
                 </div>
@@ -171,43 +291,79 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Recent Bookings */}
-          <div className="p-6 bg-white shadow-lg rounded-2xl">
-            <h3 className="mb-4 text-lg font-semibold text-gray-800">
-              Lịch hẹn gần đây
-            </h3>
-            <div className="space-y-4">
-              {[1, 2, 3, 4, 5].map((i) => (
+          {/* Bài viết mới trên cộng đồng */}
+          <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                Bài viết mới trên cộng đồng
+              </h3>
+              <Link
+                href="/community"
+                className="flex items-center gap-1 text-sm font-medium text-violet-600 hover:text-violet-700"
+              >
+                Xem diễn đàn
+                <ArrowUpRight size={16} />
+              </Link>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {mockRecentPosts.map((post) => (
                 <div
-                  key={i}
-                  className="flex items-center justify-between p-3 transition-colors rounded-lg bg-gray-50 hover:bg-gray-100"
+                  key={post.id}
+                  className="flex items-center justify-between px-6 py-4 transition-colors hover:bg-gray-50/80"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-full">
-                      <Calendar size={18} className="text-green-600" />
+                  <div className="flex min-w-0 flex-1 items-center gap-4">
+                    <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-100">
+                      <MessageSquare size={20} className="text-emerald-600" />
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-800">
-                        Xét nghiệm ADN #{1000 + i}
-                      </p>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-gray-800">{post.title}</p>
                       <p className="text-sm text-gray-500">
-                        {new Date().toLocaleDateString('vi-VN')}
+                        #{post.group} • {post.likes} lượt thích
                       </p>
                     </div>
                   </div>
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      i % 3 === 0
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : i % 3 === 1
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-green-100 text-green-700'
-                    }`}
-                  >
-                    {i % 3 === 0 ? 'Chờ xử lý' : i % 3 === 1 ? 'Đang xử lý' : 'Hoàn thành'}
-                  </span>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Stats Row */}
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-100">
+              <ArrowUpRight size={24} className="text-violet-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-800">+24</p>
+              <p className="text-sm text-gray-500">Đăng ký hôm nay</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100">
+              <MessageSquare size={24} className="text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-800">+18</p>
+              <p className="text-sm text-gray-500">Bài viết hôm nay</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100">
+              <GraduationCap size={24} className="text-amber-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-800">5</p>
+              <p className="text-sm text-gray-500">Yêu cầu mentor chờ</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-100">
+              <Timer size={24} className="text-cyan-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-800">67</p>
+              <p className="text-sm text-gray-500">Đang học Pomodoro</p>
             </div>
           </div>
         </div>
@@ -215,4 +371,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { GraduationCap, LogOut, Menu, User, X, BookOpen, Users } from 'lucide-react';
+import { Crown, GraduationCap, LogOut, Menu, User, X, BookOpen, Users } from 'lucide-react';
 
 const navLinks = [
   { href: '/', label: 'Trang chủ' },
@@ -11,7 +11,8 @@ const navLinks = [
   { href: '/community', label: 'Cộng đồng' },
   { href: '/groups', label: 'Nhóm học' },
   { href: '/pomodoro', label: 'Pomodoro' },
-  { href: '/contact', label: 'Mentor' },
+  { href: '/mentors', label: 'Mentor' },
+  { href: '/upgrade', label: 'VIP' },
 ];
 
 interface UserInfo {
@@ -76,15 +77,15 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm border-b border-pink-100">
+    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm border-b border-slate-200">
       <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-pink-500 shadow-lg shadow-violet-200">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-slate-800 shadow-lg shadow-slate-200">
               <GraduationCap size={24} className="text-white" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="text-xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
               StudyHub
             </span>
           </Link>
@@ -95,9 +96,9 @@ export default function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-medium transition-colors hover:text-violet-600 ${
+                className={`text-sm font-medium transition-colors hover:text-slate-700 ${
                   pathname === link.href || pathname?.startsWith(link.href + '/')
-                    ? 'text-violet-600'
+                    ? 'text-slate-700'
                     : 'text-gray-600'
                 }`}
               >
@@ -120,7 +121,7 @@ export default function Header() {
                   <span className="text-sm text-gray-600 hidden lg:block">
                     {userInfo.userName}
                   </span>
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-pink-500 text-white font-semibold text-sm cursor-pointer hover:shadow-lg hover:shadow-violet-200 transition-all">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 text-white font-semibold text-sm cursor-pointer hover:shadow-lg hover:shadow-slate-200 transition-all">
                     {getInitials(userInfo.userName)}
                   </div>
                 </button>
@@ -139,7 +140,7 @@ export default function Header() {
                       <Link
                         href="/profile"
                         onClick={() => setIsAvatarOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-violet-50 hover:text-violet-600 transition-colors"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-slate-50 hover:text-slate-700 transition-colors"
                       >
                         <User size={18} />
                         Hồ sơ cá nhân
@@ -147,10 +148,26 @@ export default function Header() {
                       <Link
                         href="/groups"
                         onClick={() => setIsAvatarOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-violet-50 hover:text-violet-600 transition-colors"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-slate-50 hover:text-slate-700 transition-colors"
                       >
                         <Users size={18} />
                         Không gian học
+                      </Link>
+                      <Link
+                        href="/mentor/dashboard"
+                        onClick={() => setIsAvatarOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-slate-50 hover:text-slate-700 transition-colors"
+                      >
+                        <BookOpen size={18} />
+                        Dashboard Mentor
+                      </Link>
+                      <Link
+                        href="/upgrade"
+                        onClick={() => setIsAvatarOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-slate-50 hover:text-slate-700 transition-colors"
+                      >
+                        <Crown size={18} />
+                        Nâng cấp VIP
                       </Link>
                     </div>
 
@@ -171,13 +188,13 @@ export default function Header() {
               <>
                 <Link
                   href="/login"
-                  className="px-4 py-2 text-sm font-medium text-violet-600 transition-colors hover:text-violet-800"
+                  className="px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:text-slate-900"
                 >
                   Đăng nhập
                 </Link>
                 <Link
                   href="/register"
-                  className="px-5 py-2.5 text-sm font-semibold text-white transition-all bg-gradient-to-r from-violet-500 to-pink-500 rounded-xl hover:shadow-lg hover:shadow-pink-200 hover:-translate-y-0.5"
+                  className="px-5 py-2.5 text-sm font-semibold text-white transition-all bg-gradient-to-br from-slate-600 to-slate-800 rounded-xl hover:shadow-lg hover:shadow-slate-200 hover:-translate-y-0.5"
                 >
                   Đăng ký
                 </Link>
@@ -197,7 +214,7 @@ export default function Header() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-pink-100">
+          <div className="md:hidden py-4 border-t border-slate-200">
             <nav className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <Link
@@ -205,7 +222,7 @@ export default function Header() {
                   href={link.href}
                   className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                     pathname === link.href || pathname?.startsWith(link.href + '/')
-                      ? 'bg-violet-50 text-violet-600'
+                      ? 'bg-slate-100 text-slate-700'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
@@ -213,11 +230,11 @@ export default function Header() {
                   {link.label}
                 </Link>
               ))}
-              <hr className="my-2 border-pink-100" />
+              <hr className="my-2 border-slate-200" />
               {isLoggedIn && userInfo ? (
                 <>
                   <div className="flex items-center gap-3 px-4 py-2">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-pink-500 text-white font-semibold text-xs">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 text-white font-semibold text-xs">
                       {getInitials(userInfo.userName)}
                     </div>
                     <span className="text-sm font-semibold text-gray-800">
@@ -226,7 +243,7 @@ export default function Header() {
                   </div>
                   <Link
                     href="/profile"
-                    className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-violet-50 hover:text-violet-600 rounded-lg"
+                    className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-slate-50 hover:text-slate-700 rounded-lg"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <User size={18} />
@@ -234,7 +251,7 @@ export default function Header() {
                   </Link>
                   <Link
                     href="/groups"
-                    className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-violet-50 hover:text-violet-600 rounded-lg"
+                    className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-slate-50 hover:text-slate-700 rounded-lg"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <BookOpen size={18} />
@@ -262,7 +279,7 @@ export default function Header() {
                   </Link>
                   <Link
                     href="/register"
-                    className="px-4 py-2 text-sm font-semibold text-center text-white bg-gradient-to-r from-violet-500 to-pink-500 rounded-xl"
+                    className="px-4 py-2 text-sm font-semibold text-center text-white bg-gradient-to-br from-slate-600 to-slate-800 rounded-xl"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Đăng ký

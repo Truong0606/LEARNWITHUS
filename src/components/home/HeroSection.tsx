@@ -5,8 +5,8 @@ export default function HeroSection() {
   return (
     <section className="relative py-20 overflow-hidden md:py-24 bg-studyhub-hero">
       {/* Decorative blobs */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-violet-300 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse" />
-      <div className="absolute bottom-20 right-10 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse" />
+      <div className="absolute top-20 left-10 w-72 h-72 bg-slate-300 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse" />
+      <div className="absolute bottom-20 right-10 w-72 h-72 bg-slate-400 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse" />
       <div className="absolute top-40 right-1/3 w-72 h-72 bg-amber-300 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse" />
 
       <div className="relative flex flex-col items-center px-4 mx-auto md:flex-row max-w-7xl sm:px-6 lg:px-8">
@@ -17,7 +17,7 @@ export default function HeroSection() {
           </div>
           <h1 className="mb-6 text-3xl font-bold leading-tight text-gray-800 md:text-4xl lg:text-5xl">
             Học tập hiệu quả cùng
-            <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
               {" "}cộng đồng{" "}
             </span>
             sinh viên
@@ -36,7 +36,7 @@ export default function HeroSection() {
             </Link>
             <Link
               href="/services"
-              className="inline-block px-6 py-3 font-semibold text-violet-600 transition-all border-2 border-violet-200 rounded-xl hover:bg-violet-50 hover:border-violet-300"
+              className="inline-block px-6 py-3 font-semibold text-slate-700 transition-all border-2 border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300"
             >
               Khám phá nhóm học
             </Link>
@@ -47,7 +47,7 @@ export default function HeroSection() {
             <div className="grid gap-4">
               <div className="p-6 bg-white border border-violet-100 rounded-2xl shadow-lg shadow-violet-100/50">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 shadow-lg shadow-violet-200">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-slate-800 shadow-lg shadow-slate-200">
                     <Timer size={20} className="text-white" />
                   </div>
                   <div>
@@ -60,9 +60,9 @@ export default function HeroSection() {
                 </div>
               </div>
 
-              <div className="p-6 bg-white border border-pink-100 rounded-2xl shadow-lg shadow-pink-100/50">
+              <div className="p-6 bg-white border border-slate-200 rounded-2xl shadow-lg shadow-slate-100/50">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 shadow-lg shadow-pink-200">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-slate-600 to-slate-800 shadow-lg shadow-slate-200">
                     <Users size={20} className="text-white" />
                   </div>
                   <div>

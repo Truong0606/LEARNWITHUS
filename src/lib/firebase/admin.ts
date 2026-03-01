@@ -16,8 +16,12 @@ function initializeFirebaseAdmin() {
       let privateKey = parsed.private_key ?? parsed.privateKey;
       const clientEmail = parsed.client_email ?? parsed.clientEmail;
       if (projectId && privateKey && clientEmail) {
-        if (typeof privateKey === 'string' && privateKey.includes('\\n')) {
-          privateKey = privateKey.replace(/\\n/g, '\n');
+        if (typeof privateKey === 'string') {
+          if (privateKey.includes('\\n')) {
+            privateKey = privateKey.replace(/\\n/g, '\n');
+          } else if (!privateKey.includes('\n') && privateKey.includes('-----BEGIN')) {
+            privateKey = privateKey.replace(/-----BEGIN PRIVATE KEY-----/, '-----BEGIN PRIVATE KEY-----\n').replace(/-----END PRIVATE KEY-----/, '\n-----END PRIVATE KEY-----');
+          }
         }
         admin.initializeApp({
           credential: admin.credential.cert({ projectId, clientEmail, privateKey } as admin.ServiceAccount),

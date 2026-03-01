@@ -50,7 +50,7 @@ export default function MentorForm() {
 
   if (success) {
     return (
-      <div className="p-8 bg-white rounded-2xl border border-pink-100 shadow-lg text-center">
+      <div className="p-8 bg-white rounded-2xl border border-slate-200 shadow-lg text-center">
         <CheckCircle2 size={48} className="mx-auto mb-4 text-emerald-500" />
         <h3 className="mb-2 text-lg font-bold text-gray-800">Gửi yêu cầu thành công!</h3>
         <p className="text-sm text-gray-600 mb-6">
@@ -73,7 +73,7 @@ export default function MentorForm() {
   }
 
   return (
-    <div className="p-8 bg-white rounded-2xl border border-pink-100 shadow-lg">
+    <div className="p-8 bg-white rounded-2xl border border-slate-200 shadow-lg">
       <h2 className="mb-6 text-xl font-semibold text-gray-800">
         Gửi yêu cầu mentor
       </h2>

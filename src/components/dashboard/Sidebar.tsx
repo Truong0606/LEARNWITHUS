@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { 
-  Dna, 
-  ChevronDown, 
+import {
+  ChevronDown,
   ChevronRight,
+  GraduationCap,
   LogOut,
-  type LucideIcon 
+  type LucideIcon,
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -23,7 +23,7 @@ interface SidebarProps {
   title?: string;
 }
 
-export default function Sidebar({ items, title = 'ADN Huyết Thống' }: SidebarProps) {
+export default function Sidebar({ items, title = 'StudyHub Admin' }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [openDropdown, setOpenDropdown] = useState<Record<string, boolean>>({});
@@ -48,8 +48,8 @@ export default function Sidebar({ items, title = 'ADN Huyết Thống' }: Sideba
     <div className="flex flex-col h-screen w-64 bg-[#1F2B6C] shadow-lg">
       {/* Logo */}
       <div className="flex flex-col items-center py-6">
-        <div className="w-14 h-14 rounded-full bg-[#1F2B6C] flex items-center justify-center mb-2">
-          <Dna size={32} className="text-white" />
+        <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-xl bg-white/10">
+          <GraduationCap size={28} className="text-white" />
         </div>
         <span className="text-2xl font-bold text-center text-white">{title}</span>
       </div>

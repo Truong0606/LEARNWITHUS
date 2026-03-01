@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="bg-gradient-to-br from-violet-600 via-fuchsia-600 to-pink-600 text-white">
+    <footer className="bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-white">
       <div className="px-6 py-12 mx-auto max-w-7xl">
         <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
           <div>
@@ -47,10 +47,18 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/contact"
+                  href="/mentors"
                   className="transition-colors hover:text-amber-300"
                 >
                   Mentor
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/upgrade"
+                  className="transition-colors hover:text-amber-300"
+                >
+                  Nâng cấp VIP
                 </Link>
               </li>
             </ul>

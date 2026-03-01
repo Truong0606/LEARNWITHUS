@@ -60,7 +60,7 @@ const TestimonialCard = ({ testimonial }: { testimonial: Testimonial }) => (
 
 export default function TestimonialsSection() {
   return (
-    <section className="py-16 text-white md:py-20 bg-gradient-to-br from-violet-600 via-fuchsia-600 to-pink-600 overflow-hidden">
+    <section className="py-16 text-white md:py-20 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 overflow-hidden">
       <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="text-center mb-10">
           <h2 className="mb-4 text-2xl font-bold md:text-3xl">

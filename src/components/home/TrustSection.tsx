@@ -8,7 +8,7 @@ const indicators = [
 
 export default function TrustSection() {
   return (
-    <section className="py-16 md:py-20 bg-gradient-to-br from-violet-600 via-fuchsia-600 to-pink-600 text-white overflow-hidden relative">
+    <section className="py-16 md:py-20 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-white overflow-hidden relative">
       {/* Decorative elements */}
       <div className="absolute top-0 left-0 w-full h-full opacity-10">
         <div className="absolute top-10 left-10 w-40 h-40 border border-white rounded-full" />

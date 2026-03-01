@@ -32,20 +32,20 @@ const steps = [
 ];
 
 const colorMap: Record<string, { gradient: string; text: string }> = {
-  violet: { gradient: "from-violet-500 to-violet-600", text: "text-violet-600" },
-  pink: { gradient: "from-pink-500 to-rose-500", text: "text-pink-600" },
+  violet: { gradient: "from-slate-600 to-slate-800", text: "text-slate-600" },
+  pink: { gradient: "from-slate-600 to-slate-800", text: "text-slate-600" },
   emerald: { gradient: "from-emerald-500 to-green-500", text: "text-emerald-600" },
   amber: { gradient: "from-amber-500 to-orange-500", text: "text-amber-600" },
 };
 
 export default function ProcessSection() {
   return (
-    <section className="py-16 md:py-20 bg-gradient-to-br from-violet-100 via-fuchsia-50 to-pink-100">
+    <section className="py-16 md:py-20 bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100">
       <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="mb-4 text-2xl font-bold text-gray-800 md:text-3xl">
             Hành trình học tập cùng{" "}
-            <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
               StudyHub
             </span>
           </h2>

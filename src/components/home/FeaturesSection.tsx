@@ -54,8 +54,8 @@ const features: Feature[] = [
 ];
 
 const colorMap: Record<string, { bg: string; icon: string; border: string }> = {
-  violet: { bg: "bg-violet-50", icon: "text-violet-600", border: "border-violet-200" },
-  pink: { bg: "bg-pink-50", icon: "text-pink-600", border: "border-pink-200" },
+  violet: { bg: "bg-slate-50", icon: "text-slate-600", border: "border-slate-200" },
+  pink: { bg: "bg-slate-100", icon: "text-slate-600", border: "border-slate-200" },
   emerald: { bg: "bg-emerald-50", icon: "text-emerald-600", border: "border-emerald-200" },
   amber: { bg: "bg-amber-50", icon: "text-amber-600", border: "border-amber-200" },
   rose: { bg: "bg-rose-50", icon: "text-rose-600", border: "border-rose-200" },
@@ -69,7 +69,7 @@ export default function FeaturesSection() {
         <div className="text-center mb-12">
           <h2 className="mb-4 text-2xl font-bold text-gray-800 md:text-3xl">
             Tất cả những gì bạn cần để{" "}
-            <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
               học tập hiệu quả
             </span>
           </h2>
