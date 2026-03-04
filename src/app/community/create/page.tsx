@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { Suspense, useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Header, Footer } from '@/components/shared';
 import {
   ArrowLeft,
@@ -16,57 +16,39 @@ import {
   Eye,
 } from 'lucide-react';
 
-const GROUPS = [
-  { id: '', name: 'Tất cả (không chọn nhóm)' },
-  { id: 'g1', name: 'Giải tích 1 - Nhóm 7' },
-  { id: 'g2', name: 'Lập trình Web K21' },
-  { id: 'g3', name: 'AI cơ bản - K20' },
-  { id: 'g4', name: 'CSDL nâng cao' },
-  { id: 'g5', name: 'IELTS 6.5+ Club' },
-];
-
 const SUGGESTED_TAGS = [
   'Toán', 'Lập trình', 'AI', 'CSDL', 'Tiếng Anh', 'Ôn thi',
   'Chia sẻ', 'Hỏi đáp', 'Tìm nhóm', 'Kinh nghiệm',
 ];
 
-export default function CreatePostPage() {
+function CreatePostContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const groupIdFromUrl = searchParams.get('groupId');
+  const groupId = groupIdFromUrl || null;
+
   const [loading, setLoading] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
-  const [groupId, setGroupId] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [anonymous, setAnonymous] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
-
-  // Fetch user's joined groups from API
-  const fetchGroups = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
-      const res = await fetch('/api/groups', { headers });
-      const data = await res.json();
-      if (res.ok && data.data) {
-        const joinedGroups = data.data
-          .filter((g: { userMembershipStatus: string }) => g.userMembershipStatus === 'member')
-          .map((g: { id: string; name: string }) => ({ id: g.id, name: g.name }));
-        setGroups(joinedGroups);
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
+  const [groupName, setGroupName] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchGroups();
-  }, [fetchGroups]);
+    if (groupId) {
+      fetch(`/api/groups/${groupId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.data?.name) setGroupName(data.data.name);
+        })
+        .catch(() => {});
+    }
+  }, [groupId]);
 
   const canSubmit = title.trim() || body.trim() || images.length > 0;
   const charCount = body.length;
@@ -135,6 +117,31 @@ export default function CreatePostPage() {
 
     setLoading(true);
     try {
+      const imageUrls: string[] = [];
+
+      if (images.length > 0) {
+        for (const img of images) {
+          const formData = new FormData();
+          formData.append('file', img.file);
+          formData.append('folder', 'community');
+
+          const uploadRes = await fetch('/api/upload/image', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData,
+          });
+
+          const uploadData = await uploadRes.json();
+          if (uploadRes.ok && uploadData.data?.url) {
+            imageUrls.push(uploadData.data.url);
+          } else {
+            setErrors({ submit: uploadData.message || 'Lỗi tải ảnh lên' });
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
       const res = await fetch('/api/community', {
         method: 'POST',
         headers: {
@@ -147,13 +154,18 @@ export default function CreatePostPage() {
           groupId: groupId || undefined,
           tags,
           anonymous,
+          images: imageUrls,
         }),
       });
 
       const data = await res.json();
 
       if (res.ok && data.data?.id) {
-        router.push(`/community/${data.data.id}`);
+        if (groupId) {
+          router.push(`/groups/${groupId}`);
+        } else {
+          router.push(`/community/${data.data.id}`);
+        }
       } else {
         setErrors({ submit: data.message || 'Có lỗi xảy ra' });
       }
@@ -172,7 +184,7 @@ export default function CreatePostPage() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <Link
-              href="/community"
+              href={groupId ? `/groups/${groupId}` : '/community'}
               className="flex items-center justify-center w-10 h-10 text-gray-600 bg-white rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors"
               aria-label="Quay lại"
             >
@@ -205,24 +217,13 @@ export default function CreatePostPage() {
 
         {/* Form */}
         <div className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm space-y-5">
-          {/* Group Selector */}
-          <div>
-            <label className="flex items-center gap-2 mb-2 text-sm font-semibold text-gray-700">
-              <Users size={16} />
-              Đăng vào
-            </label>
-            <select
-              value={groupId}
-              onChange={(e) => setGroupId(e.target.value)}
-              className="w-full px-4 py-3 text-sm bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all"
-            >
-              <option value="">Tất cả (không chọn nhóm)</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                </option>
-              ))}
-            </select>
+          {/* Post destination (read-only, based on context) */}
+          <div className="flex items-center gap-2 px-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl">
+            <Users size={16} className="text-slate-500" />
+            <span className="text-gray-600">Đăng vào:</span>
+            <span className="font-semibold text-slate-800">
+              {groupId ? (groupName || `Nhóm ${groupId}`) : 'Cộng đồng'}
+            </span>
           </div>
 
           {/* Title */}
@@ -374,5 +375,13 @@ export default function CreatePostPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+export default function CreatePostPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Đang tải...</div>}>
+      <CreatePostContent />
+    </Suspense>
   );
 }

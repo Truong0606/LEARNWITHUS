@@ -4,6 +4,19 @@
 import admin from 'firebase-admin';
 import { getApps } from 'firebase-admin/app';
 
+/**
+ * Get storage bucket name. Firebase projects:
+ * - Created after Oct 2024: projectId.firebasestorage.app
+ * - Older projects: projectId.appspot.com
+ * Set NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET in .env.local if upload fails with "bucket does not exist".
+ */
+function getStorageBucket(projectId: string): string {
+  const envBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
+    process.env.FIREBASE_STORAGE_BUCKET;
+  if (envBucket) return envBucket;
+  return `${projectId}.firebasestorage.app`;
+}
+
 function initializeFirebaseAdmin() {
   if (getApps().length) return;
 
@@ -23,14 +36,12 @@ function initializeFirebaseAdmin() {
             privateKey = privateKey.replace(/-----BEGIN PRIVATE KEY-----/, '-----BEGIN PRIVATE KEY-----\n').replace(/-----END PRIVATE KEY-----/, '\n-----END PRIVATE KEY-----');
           }
         }
-        const storageBucket =
-          process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
-          `${projectId}.appspot.com`;
+        const storageBucket = getStorageBucket(projectId);
         admin.initializeApp({
           credential: admin.credential.cert({ projectId, clientEmail, privateKey } as admin.ServiceAccount),
           storageBucket,
         });
-        console.log('✅ Firebase Admin initialized (FIREBASE_SERVICE_ACCOUNT)');
+        console.log('✅ Firebase Admin initialized (FIREBASE_SERVICE_ACCOUNT)', { storageBucket });
         return;
       }
     } catch (e) {
@@ -50,9 +61,7 @@ function initializeFirebaseAdmin() {
       if (fs.existsSync(serviceAccountPath)) {
         const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
         const projectId = serviceAccount.project_id || serviceAccount.projectId;
-        const storageBucket =
-          process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
-          `${projectId}.appspot.com`;
+        const storageBucket = getStorageBucket(projectId);
         admin.initializeApp({
           credential: admin.credential.cert(serviceAccount),
           storageBucket,
@@ -82,9 +91,7 @@ function initializeFirebaseAdmin() {
   privateKey = privateKey.replace(/\\n/g, '\n');
 
   try {
-    const storageBucket =
-      process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ||
-      `${projectId}.appspot.com`;
+    const storageBucket = getStorageBucket(projectId);
     admin.initializeApp({
       credential: admin.credential.cert({ projectId, clientEmail, privateKey } as admin.ServiceAccount),
       storageBucket,

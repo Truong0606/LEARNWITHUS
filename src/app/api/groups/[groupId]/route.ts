@@ -68,7 +68,8 @@ export async function GET(
         const usersMap: Record<string, User> = {};
         usersSnapshot.docs.forEach(doc => {
           const user = doc.data() as User;
-          usersMap[user.id] = user;
+          const uid = user.id ?? doc.id;
+          usersMap[uid] = { ...user, id: uid };
         });
 
         membersSnapshot.docs
@@ -87,6 +88,7 @@ export async function GET(
                 userId: memberData.userId,
                 name: user.fullName,
                 avatar,
+                avatarUrl: user.avatarUrl || null,
                 role: memberData.role,
                 status: memberData.status,
                 joinedAt: memberData.joinedAt?.toDate?.() || memberData.joinedAt,
@@ -119,8 +121,12 @@ export async function GET(
       }
     }
 
+    // Use actual member count from groupMembers (not stored membersCount which may be stale)
+    const actualMembersCount = members.length;
+
     const result: StudyGroupDetail = {
       ...group,
+      membersCount: actualMembersCount,
       userMembershipStatus,
       userMemberRole,
       members,

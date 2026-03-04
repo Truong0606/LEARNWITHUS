@@ -1,8 +1,9 @@
-// POST /api/upload/result - Upload result file to Firebase Storage
+// POST /api/upload/result - Upload result file (local storage, no Firebase Storage)
 
 import { NextRequest, NextResponse } from 'next/server';
-import { adminStorage, COLLECTIONS, adminDb } from '@/lib/firebase/admin';
+import { COLLECTIONS, adminDb } from '@/lib/firebase/admin';
 import { verifyToken } from '@/lib/utils';
+import { saveToLocal } from '@/lib/upload-local';
 import { ApiResponse } from '@/types';
 
 // POST - Upload result file
@@ -84,38 +85,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get file buffer
     const buffer = Buffer.from(await file.arrayBuffer());
+    const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'pdf';
+    const safeExt = ['pdf', 'jpeg', 'jpg', 'png'].includes(fileExtension) ? fileExtension : 'pdf';
 
-    // Generate unique filename
-    const timestamp = Date.now();
-    const fileExtension = file.name.split('.').pop();
-    const fileName = `results/${bookingId}/${timestamp}.${fileExtension}`;
-
-    // Upload to Firebase Storage
-    const bucket = adminStorage.bucket();
-    const fileRef = bucket.file(fileName);
-
-    await fileRef.save(buffer, {
-      metadata: {
-        contentType: file.type,
-        metadata: {
-          bookingId,
-          uploadedBy: payload.userId,
-          originalName: file.name
-        }
-      }
-    });
-
-    // Make file publicly accessible
-    await fileRef.makePublic();
-
-    // Get public URL
-    const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+    const publicUrl = await saveToLocal(buffer, 'results', bookingId, safeExt);
 
     return NextResponse.json<ApiResponse<{ fileUrl: string; fileName: string }>>(
       { 
-        data: { fileUrl: publicUrl, fileName: file.name }, 
+        data: { fileUrl: publicUrl, fileName: file.name },
         message: 'Tải file lên thành công', 
         statusCode: 200 
       },
@@ -123,9 +101,10 @@ export async function POST(request: NextRequest) {
     );
 
   } catch (error) {
-    console.error('Upload result file error:', error);
+    const err = error as Error;
+    console.error('Upload result file error:', err);
     return NextResponse.json<ApiResponse<null>>(
-      { data: null, message: 'Lỗi máy chủ khi tải file lên', statusCode: 500 },
+      { data: null, message: err.message || 'Lỗi máy chủ khi tải file lên', statusCode: 500 },
       { status: 500 }
     );
   }

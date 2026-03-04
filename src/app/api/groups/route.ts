@@ -30,6 +30,26 @@ export async function GET(request: NextRequest) {
 
     const groups = groupsSnapshot.docs.map(doc => doc.data() as StudyGroup);
 
+    // Get actual member counts from groupMembers (status=active)
+    const membershipsSnapshot = await adminDb
+      .collection(COLLECTIONS.groupMembers)
+      .where('status', '==', 'active')
+      .get();
+
+    const countByGroupId: Record<string, number> = {};
+    membershipsSnapshot.docs.forEach(doc => {
+      const groupId = (doc.data() as { groupId: string }).groupId;
+      countByGroupId[groupId] = (countByGroupId[groupId] || 0) + 1;
+    });
+
+    // Override membersCount with actual count
+    groups.forEach(g => {
+      g.membersCount = countByGroupId[g.id] ?? 0;
+    });
+
+    // Re-sort by actual membersCount
+    groups.sort((a, b) => b.membersCount - a.membersCount);
+
     // If user is logged in, get their membership status for each group
     let membershipMap: Record<string, { status: GroupMembershipStatus; role?: string }> = {};
 

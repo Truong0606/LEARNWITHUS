@@ -38,27 +38,52 @@ export async function GET(request: NextRequest) {
     const tag = searchParams.get('tag'); // filter by tag
     const limit = parseInt(searchParams.get('limit') || '20');
 
-    let query: FirebaseFirestore.Query = adminDb
+    // Fetch with orderBy only (no composite index needed), then filter in memory.
+    // This avoids Firestore composite index requirement for where+orderBy.
+    const fetchLimit = 100;
+    const snapshot = await adminDb
       .collection(COLLECTIONS.communityPosts)
-      .orderBy('createdAt', 'desc');
+      .orderBy('createdAt', 'desc')
+      .limit(fetchLimit)
+      .get();
 
+    let posts = snapshot.docs.map(doc => {
+      const data = doc.data() as Record<string, unknown>;
+      return serializeTimestamps({ ...data, id: data.id ?? doc.id }) as unknown as CommunityPost;
+    });
+
+    // Filter by groupId in memory
     if (groupId) {
-      query = query.where('groupId', '==', groupId);
+      // Group feed: only posts belonging to this group
+      posts = posts.filter(p => p.groupId === groupId);
+    } else {
+      // Community feed: only posts NOT in any group (null, undefined, or empty)
+      posts = posts.filter(p => p.groupId == null || p.groupId === '');
     }
 
-    query = query.limit(limit);
-
-    const snapshot = await query.get();
-    let posts = snapshot.docs.map(doc => serializeTimestamps(doc.data() as Record<string, unknown>) as unknown as CommunityPost);
+    posts = posts.slice(0, limit);
 
     // Client-side tag filter (Firestore doesn't support array-contains + orderBy on different fields well)
     if (tag) {
       posts = posts.filter(p => p.tags.some(t => t.toLowerCase().includes(tag.toLowerCase())));
     }
 
-    // Add user-specific info
+    // Enrich with authorAvatarUrl from users (for posts that don't have it stored)
+    const authorIds = [...new Set(posts.map(p => p.authorId).filter(Boolean))];
+    const avatarMap: Record<string, string> = {};
+    if (authorIds.length > 0) {
+      const refs = authorIds.map(id => adminDb.collection(COLLECTIONS.users).doc(id));
+      const userDocs = await adminDb.getAll(...refs);
+      userDocs.forEach((doc) => {
+        const u = doc.data() as { avatarUrl?: string } | undefined;
+        if (u?.avatarUrl) avatarMap[doc.id] = u.avatarUrl;
+      });
+    }
+
+    // Add user-specific info and authorAvatarUrl
     const postsWithUserInfo = posts.map(post => ({
       ...post,
+      authorAvatarUrl: (post as { authorAvatarUrl?: string }).authorAvatarUrl || avatarMap[post.authorId] || null,
       liked_by_user: userId ? (post.likedBy || []).includes(userId) : false,
       saved_by_user: userId ? (post.savedBy || []).includes(userId) : false,
     }));
@@ -97,9 +122,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, body: postBody, groupId, tags, anonymous } = body;
+    const { title, body: postBody, groupId, tags, anonymous, images } = body;
 
-    if (!postBody?.trim() && !title?.trim()) {
+    if (!postBody?.trim() && !title?.trim() && (!images || images.length === 0)) {
       return NextResponse.json<ApiResponse<null>>(
         { data: null, message: 'Bài viết phải có tiêu đề hoặc nội dung', statusCode: 400 },
         { status: 400 }
@@ -113,9 +138,10 @@ export async function POST(request: NextRequest) {
       : Promise.resolve(null);
 
     const [userDoc, groupDoc] = await Promise.all([userDocPromise, groupDocPromise]);
-    const userData = userDoc.data();
+    const userData = userDoc.data() as { fullName?: string; address?: string; avatarUrl?: string } | undefined;
     const authorName = anonymous ? 'Ẩn danh' : (userData?.fullName || payload.userName);
     const initials = authorName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+    const authorAvatarUrl = anonymous ? null : (userData?.avatarUrl || null);
 
     let groupName: string | null = null;
     if (groupId && groupDoc) {
@@ -136,13 +162,14 @@ export async function POST(request: NextRequest) {
       authorId: payload.userId,
       authorName,
       authorAvatar: initials,
+      authorAvatarUrl,
       authorTag: userData?.address ? `SV - ${userData.address}` : 'Sinh viên',
       groupId: groupId || null,
       groupName,
       title: title?.trim() || '',
       body: postBody?.trim() || '',
       tags: tags || [],
-      images: [],
+      images: Array.isArray(images) ? images.filter((u: unknown) => typeof u === 'string') : [],
       likesCount: 0,
       commentsCount: 0,
       sharesCount: 0,

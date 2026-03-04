@@ -299,7 +299,18 @@ export default function ProfilePage() {
       const data = await res.json();
 
       if (res.ok && data.data?.avatarUrl) {
-        setProfile(prev => prev ? { ...prev, avatarUrl: data.data.avatarUrl } : null);
+        const newAvatarUrl = data.data.avatarUrl;
+        setProfile(prev => prev ? { ...prev, avatarUrl: newAvatarUrl } : null);
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          try {
+            const user = JSON.parse(userStr) as { userName: string; role: string; userId: string; avatarUrl?: string };
+            localStorage.setItem('user', JSON.stringify({ ...user, avatarUrl: newAvatarUrl }));
+            window.dispatchEvent(new Event('user-avatar-updated'));
+          } catch {
+            // ignore
+          }
+        }
         setSuccessMessage('Cập nhật ảnh đại diện thành công!');
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 3000);

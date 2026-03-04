@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Crown, GraduationCap, LogOut, Menu, User, X, BookOpen, Users } from 'lucide-react';
@@ -19,6 +19,7 @@ interface UserInfo {
   userName: string;
   role: string;
   userId: string;
+  avatarUrl?: string;
 }
 
 export default function Header() {
@@ -30,10 +31,9 @@ export default function Header() {
   const router = useRouter();
   const avatarRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  const loadUserFromStorage = useCallback(() => {
     const token = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
-
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr) as UserInfo;
@@ -44,7 +44,20 @@ export default function Header() {
         localStorage.removeItem('user');
       }
     }
-  }, [pathname]);
+  }, []);
+
+  useEffect(() => {
+    loadUserFromStorage();
+  }, [pathname, loadUserFromStorage]);
+
+  useEffect(() => {
+    window.addEventListener('storage', loadUserFromStorage);
+    window.addEventListener('user-avatar-updated', loadUserFromStorage);
+    return () => {
+      window.removeEventListener('storage', loadUserFromStorage);
+      window.removeEventListener('user-avatar-updated', loadUserFromStorage);
+    };
+  }, [loadUserFromStorage]);
 
   // Close avatar dropdown when clicking outside
   useEffect(() => {
@@ -121,8 +134,12 @@ export default function Header() {
                   <span className="text-sm text-gray-600 hidden lg:block">
                     {userInfo.userName}
                   </span>
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 text-white font-semibold text-sm cursor-pointer hover:shadow-lg hover:shadow-slate-200 transition-all">
-                    {getInitials(userInfo.userName)}
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 text-white font-semibold text-sm cursor-pointer hover:shadow-lg hover:shadow-slate-200 transition-all overflow-hidden">
+                    {userInfo.avatarUrl ? (
+                      <img src={userInfo.avatarUrl} alt={userInfo.userName} className="w-full h-full object-cover" />
+                    ) : (
+                      getInitials(userInfo.userName)
+                    )}
                   </div>
                 </button>
 
@@ -245,8 +262,12 @@ export default function Header() {
               {isLoggedIn && userInfo ? (
                 <>
                   <div className="flex items-center gap-3 px-4 py-2">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 text-white font-semibold text-xs">
-                      {getInitials(userInfo.userName)}
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 text-white font-semibold text-xs overflow-hidden">
+                      {userInfo.avatarUrl ? (
+                        <img src={userInfo.avatarUrl} alt={userInfo.userName} className="w-full h-full object-cover" />
+                      ) : (
+                        getInitials(userInfo.userName)
+                      )}
                     </div>
                     <span className="text-sm font-semibold text-gray-800">
                       {userInfo.userName}

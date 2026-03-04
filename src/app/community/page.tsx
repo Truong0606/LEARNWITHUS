@@ -28,6 +28,7 @@ interface PostData {
   authorId: string;
   authorName: string;
   authorAvatar: string;
+  authorAvatarUrl?: string | null;
   authorTag: string;
   groupId: string | null;
   groupName: string | null;
@@ -141,11 +142,15 @@ function PostCard({ post }: { post: PostData }) {
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
           <div
-            className={`flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br ${getAvatarColor(
-              post.authorId
-            )} text-white font-semibold text-sm flex-shrink-0`}
+            className={`flex items-center justify-center w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ${
+              post.authorAvatarUrl ? '' : `bg-gradient-to-br ${getAvatarColor(post.authorId)} text-white font-semibold text-sm`
+            }`}
           >
-            {post.authorAvatar}
+            {post.authorAvatarUrl ? (
+              <img src={post.authorAvatarUrl} alt={post.authorName} className="w-full h-full object-cover" />
+            ) : (
+              post.authorAvatar
+            )}
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -193,8 +198,20 @@ function PostCard({ post }: { post: PostData }) {
             {post.title}
           </h3>
         )}
-        <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{post.body}</p>
-        {post.body.length > 150 && (
+        <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{post.body || ''}</p>
+        {post.images && post.images.length > 0 && (
+          <div className="flex gap-2 mt-2 overflow-x-auto">
+            {post.images.slice(0, 3).map((url, i) => (
+              <img
+                key={i}
+                src={url}
+                alt={`Ảnh ${i + 1}`}
+                className="h-24 w-24 object-cover rounded-lg flex-shrink-0"
+              />
+            ))}
+          </div>
+        )}
+        {(post.body || '').length > 150 && (
           <span className="text-sm font-medium text-slate-600 mt-1 inline-block">Xem thêm</span>
         )}
       </Link>
@@ -389,14 +406,29 @@ export default function CommunityPage() {
             ) : filteredPosts.length === 0 ? (
               <div className="py-16 text-center bg-white rounded-2xl border border-gray-100">
                 <MessageSquare size={48} className="mx-auto mb-4 text-gray-300" />
-                <p className="text-gray-500 font-medium">Chưa có bài viết nào</p>
-                <p className="mt-1 text-sm text-gray-400">Hãy là người đầu tiên chia sẻ!</p>
-                <Link
-                  href="/community/create"
-                  className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-slate-800 via-slate-900 to-slate-950 rounded-xl"
-                >
-                  <Plus size={16} /> Tạo bài viết
-                </Link>
+                {activeTab === 'group' ? (
+                  <>
+                    <p className="text-gray-500 font-medium">Bài viết trong nhóm chỉ hiển thị trong từng nhóm</p>
+                    <p className="mt-1 text-sm text-gray-400">Vào trang nhóm để xem bài viết trong nhóm đó</p>
+                    <Link
+                      href="/groups"
+                      className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-slate-800 via-slate-900 to-slate-950 rounded-xl"
+                    >
+                      <Users size={16} /> Xem các nhóm
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-gray-500 font-medium">Chưa có bài viết nào</p>
+                    <p className="mt-1 text-sm text-gray-400">Hãy là người đầu tiên chia sẻ!</p>
+                    <Link
+                      href="/community/create"
+                      className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-slate-800 via-slate-900 to-slate-950 rounded-xl"
+                    >
+                      <Plus size={16} /> Tạo bài viết
+                    </Link>
+                  </>
+                )}
               </div>
             ) : (
               <>

@@ -8,17 +8,22 @@ interface DashboardHeaderProps {
 }
 
 export default function DashboardHeader({ title }: DashboardHeaderProps) {
-  const [user, setUser] = useState<{ userName: string; role: string } | null>(null);
+  const [user, setUser] = useState<{ userName: string; role: string; avatarUrl?: string } | null>(null);
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      try {
-        setUser(JSON.parse(userData));
-      } catch {
-        // ignore parse error
+    const loadUser = () => {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        try {
+          setUser(JSON.parse(userData));
+        } catch {
+          // ignore parse error
+        }
       }
-    }
+    };
+    loadUser();
+    window.addEventListener('user-avatar-updated', loadUser);
+    return () => window.removeEventListener('user-avatar-updated', loadUser);
   }, []);
 
   const getInitials = (name: string) => {
@@ -56,8 +61,14 @@ export default function DashboardHeader({ title }: DashboardHeaderProps) {
 
         {/* User Menu */}
         <div className="flex cursor-pointer items-center gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-gray-50">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-sm font-semibold text-white">
-            {user?.userName ? getInitials(user.userName) : <User size={20} />}
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-sm font-semibold text-white overflow-hidden">
+            {user?.avatarUrl ? (
+              <img src={user.avatarUrl} alt={user.userName} className="h-full w-full object-cover" />
+            ) : user?.userName ? (
+              getInitials(user.userName)
+            ) : (
+              <User size={20} />
+            )}
           </div>
           <div className="hidden md:block text-left">
             <p className="text-sm font-medium text-gray-800">

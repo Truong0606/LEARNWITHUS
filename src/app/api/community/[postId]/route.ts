@@ -46,17 +46,39 @@ export async function GET(
 
     const post = serializeTimestamps(postDoc.data() as Record<string, unknown>) as unknown as CommunityPost;
 
+    // Enrich post with authorAvatarUrl from user if not stored
+    let authorAvatarUrl: string | null = (post as { authorAvatarUrl?: string }).authorAvatarUrl || null;
+    if (!authorAvatarUrl && post.authorId) {
+      const authorDoc = await adminDb.collection(COLLECTIONS.users).doc(post.authorId).get();
+      const authorData = authorDoc.data() as { avatarUrl?: string } | undefined;
+      authorAvatarUrl = authorData?.avatarUrl || null;
+    }
+
     // Get comments (sort in memory to avoid composite index requirement)
     const commentsSnapshot = await adminDb
       .collection(COLLECTIONS.communityComments)
       .where('postId', '==', postId)
       .get();
 
+    // Batch fetch author avatars for comments
+    const commentAuthorIds = [...new Set(commentsSnapshot.docs.map(d => (d.data() as { authorId?: string }).authorId).filter((id): id is string => Boolean(id)))];
+    const commentAvatarMap: Record<string, string> = {};
+    if (commentAuthorIds.length > 0) {
+      const refs = commentAuthorIds.map(id => adminDb.collection(COLLECTIONS.users).doc(id));
+      const authorDocs = await adminDb.getAll(...refs);
+      authorDocs.forEach((doc) => {
+        const u = doc.data() as { avatarUrl?: string } | undefined;
+        if (u?.avatarUrl) commentAvatarMap[doc.id] = u.avatarUrl;
+      });
+    }
+
     const comments = commentsSnapshot.docs
       .map(doc => {
         const c = serializeTimestamps(doc.data() as Record<string, unknown>) as unknown as CommunityComment;
+        const storedAvatar = (c as { authorAvatarUrl?: string }).authorAvatarUrl;
         return {
           ...c,
+          authorAvatarUrl: storedAvatar || commentAvatarMap[c.authorId] || null,
           liked: userId ? (c.likedBy || []).includes(userId) : false,
         };
       })
@@ -94,6 +116,7 @@ export async function GET(
       data: {
         post: {
           ...post,
+          authorAvatarUrl,
           liked_by_user: userId ? (post.likedBy || []).includes(userId) : false,
           saved_by_user: userId ? (post.savedBy || []).includes(userId) : false,
         },

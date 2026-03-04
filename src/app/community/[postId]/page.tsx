@@ -25,6 +25,7 @@ interface PostData {
   authorId: string;
   authorName: string;
   authorAvatar: string;
+  authorAvatarUrl?: string | null;
   authorTag: string;
   groupId: string | null;
   groupName: string | null;
@@ -48,6 +49,7 @@ interface CommentData {
   authorId: string;
   authorName: string;
   authorAvatar: string;
+  authorAvatarUrl?: string | null;
   body: string;
   parentId: string | null;
   likesCount: number;
@@ -132,11 +134,17 @@ function CommentItem({
     <div className={`${isReply ? 'ml-12' : ''}`}>
       <div className="flex gap-3">
         <div
-          className={`flex items-center justify-center ${
+          className={`flex items-center justify-center overflow-hidden flex-shrink-0 ${
             isReply ? 'w-8 h-8 text-xs' : 'w-10 h-10 text-sm'
-          } rounded-full bg-gradient-to-br ${getAvatarColor(comment.authorId)} text-white font-semibold flex-shrink-0`}
+          } rounded-full ${
+            comment.authorAvatarUrl ? '' : `bg-gradient-to-br ${getAvatarColor(comment.authorId)} text-white font-semibold`
+          }`}
         >
-          {comment.authorAvatar}
+          {comment.authorAvatarUrl ? (
+            <img src={comment.authorAvatarUrl} alt={comment.authorName} className="w-full h-full object-cover" />
+          ) : (
+            comment.authorAvatar
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="p-3 bg-gray-50 rounded-2xl">
@@ -325,9 +333,10 @@ export default function PostDetailPage() {
     }
   };
 
-  // Get user initials for comment input
+  // Get user avatar/initials for comment input
   const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-  const user = userStr ? JSON.parse(userStr) : null;
+  const user = userStr ? JSON.parse(userStr) as { fullName?: string; avatarUrl?: string } : null;
+  const userAvatarUrl = user?.avatarUrl || null;
   const userInitials = user?.fullName
     ? user.fullName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
     : 'SV';
@@ -390,11 +399,15 @@ export default function PostDetailPage() {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div
-                    className={`flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br ${getAvatarColor(
-                      post.authorId
-                    )} text-white font-semibold text-sm`}
+                    className={`flex items-center justify-center w-12 h-12 rounded-full overflow-hidden ${
+                      post.authorAvatarUrl ? '' : `bg-gradient-to-br ${getAvatarColor(post.authorId)} text-white font-semibold text-sm`
+                    }`}
                   >
-                    {post.authorAvatar}
+                    {post.authorAvatarUrl ? (
+                      <img src={post.authorAvatarUrl} alt={post.authorName} className="w-full h-full object-cover" />
+                    ) : (
+                      post.authorAvatar
+                    )}
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -436,6 +449,18 @@ export default function PostDetailPage() {
               <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap mb-4">
                 {post.body}
               </div>
+              {post.images && post.images.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {post.images.map((url, i) => (
+                    <img
+                      key={i}
+                      src={url}
+                      alt={`Ảnh ${i + 1}`}
+                      className="max-h-64 rounded-xl object-cover border border-gray-100"
+                    />
+                  ))}
+                </div>
+              )}
 
               {/* Tags */}
               {post.tags.length > 0 && (
@@ -487,8 +512,14 @@ export default function PostDetailPage() {
 
             {/* Comment Input */}
             <div className="flex gap-3 mt-6 p-4 bg-white rounded-2xl border border-gray-100">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-white font-semibold text-sm flex-shrink-0">
-                {userInitials}
+              <div className={`flex items-center justify-center w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ${
+                userAvatarUrl ? '' : 'bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-white font-semibold text-sm'
+              }`}>
+                {userAvatarUrl ? (
+                  <img src={userAvatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  userInitials
+                )}
               </div>
               <div className="flex-1 flex gap-2">
                 <input

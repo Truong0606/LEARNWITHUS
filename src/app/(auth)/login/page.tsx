@@ -80,6 +80,7 @@ export default function LoginPage() {
         userName: loginData.userName,
         role: loginData.role,
         userId: loginData.userId,
+        avatarUrl: loginData.avatarUrl,
       }));
 
       router.push('/');

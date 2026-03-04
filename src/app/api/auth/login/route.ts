@@ -90,7 +90,8 @@ export async function POST(request: NextRequest) {
       token,
       userName: user.fullName,
       role: roleName,
-      userId: user.id
+      userId: user.id,
+      avatarUrl: user.avatarUrl
     };
 
     return NextResponse.json<ApiResponse<LoginResponse>>(

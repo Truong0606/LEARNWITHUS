@@ -326,6 +326,7 @@ export interface GroupMemberInfo {
   userId: string;
   name: string;
   avatar: string;
+  avatarUrl?: string | null;
   role: GroupMemberRole;
   status: GroupMemberStatus;
   joinedAt: Date;
@@ -341,6 +342,7 @@ export interface CommunityPost extends BaseEntity {
   authorId: string;
   authorName: string;
   authorAvatar: string; // initials e.g. "HM"
+  authorAvatarUrl?: string | null; // user's actual avatar image URL
   authorTag: string; // e.g. "SV - Khoa CNTT"
   groupId: string | null;
   groupName: string | null;
@@ -362,6 +364,7 @@ export interface CommunityComment extends BaseEntity {
   authorId: string;
   authorName: string;
   authorAvatar: string;
+  authorAvatarUrl?: string | null;
   body: string;
   parentId: string | null; // null = top-level, else reply
   likesCount: number;
@@ -392,6 +395,7 @@ export interface LoginResponse {
   userName: string;
   role: string;
   userId: string;
+  avatarUrl?: string;
 }
 
 export interface RegisterRequest {

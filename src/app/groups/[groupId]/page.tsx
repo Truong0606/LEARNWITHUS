@@ -121,6 +121,7 @@ interface GroupPost {
   authorId: string;
   authorName: string;
   authorAvatar: string;
+  authorAvatarUrl?: string | null;
   title: string;
   body: string;
   tags: string[];
@@ -206,8 +207,14 @@ function GroupPostCard({ post, isAdmin }: { post: GroupPost; isAdmin: boolean })
         </div>
       )}
       <div className="flex items-center gap-3 mb-3">
-        <div className={`flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br ${getAvatarColor(post.authorId)} text-white font-semibold text-xs`}>
-          {post.authorAvatar}
+        <div className={`flex items-center justify-center w-9 h-9 rounded-full overflow-hidden ${
+          post.authorAvatarUrl ? '' : `bg-gradient-to-br ${getAvatarColor(post.authorId)} text-white font-semibold text-xs`
+        }`}>
+          {post.authorAvatarUrl ? (
+            <img src={post.authorAvatarUrl} alt={post.authorName} className="w-full h-full object-cover" />
+          ) : (
+            post.authorAvatar
+          )}
         </div>
         <div>
           <span className="text-sm font-semibold text-gray-800">{post.authorName}</span>
@@ -267,6 +274,8 @@ export default function GroupDetailPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [groupPosts, setGroupPosts] = useState<GroupPost[]>([]);
   const [postsLoading, setPostsLoading] = useState(false);
+  const [currentUserAvatar, setCurrentUserAvatar] = useState<string | null>(null);
+  const [currentUserInitials, setCurrentUserInitials] = useState('SV');
 
   const isMember = group?.userMembershipStatus === 'member';
   const isAdmin = group?.userMemberRole === 'admin';
@@ -319,6 +328,33 @@ export default function GroupDetailPage() {
     fetchGroup();
     fetchGroupPosts();
   }, [fetchGroup, fetchGroupPosts]);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr) as { fullName?: string; avatarUrl?: string };
+        setCurrentUserAvatar(user.avatarUrl || null);
+        setCurrentUserInitials(
+          user.fullName ? user.fullName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase() : 'SV'
+        );
+      } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
+    const onAvatarUpdate = () => {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr) as { avatarUrl?: string };
+          setCurrentUserAvatar(user.avatarUrl || null);
+        } catch {}
+      }
+    };
+    window.addEventListener('user-avatar-updated', onAvatarUpdate);
+    return () => window.removeEventListener('user-avatar-updated', onAvatarUpdate);
+  }, []);
 
   const handleJoin = async () => {
     const token = localStorage.getItem('token');
@@ -548,11 +584,17 @@ export default function GroupDetailPage() {
                   {/* Quick Post */}
                   {isMember && (
                     <Link
-                      href="/community/create"
+                      href={`/community/create?groupId=${groupId}`}
                       className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-gray-100 hover:border-slate-200 hover:shadow-sm transition-all"
                     >
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-white font-semibold text-sm flex-shrink-0">
-                        SV
+                      <div className={`flex items-center justify-center w-10 h-10 rounded-full overflow-hidden flex-shrink-0 ${
+                        currentUserAvatar ? '' : 'bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-white font-semibold text-sm'
+                      }`}>
+                        {currentUserAvatar ? (
+                          <img src={currentUserAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          currentUserInitials
+                        )}
                       </div>
                       <div className="flex-1 px-4 py-2.5 text-sm text-gray-400 bg-gray-50 rounded-xl">
                         Chia sẻ gì đó với nhóm...
@@ -603,8 +645,14 @@ export default function GroupDetailPage() {
                           key={member.id}
                           className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-gray-100"
                         >
-                          <div className={`flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br ${getAvatarColor(member.userId)} text-white font-semibold text-sm`}>
-                            {member.avatar}
+                          <div className={`flex items-center justify-center w-10 h-10 rounded-full overflow-hidden ${
+                            member.avatarUrl ? '' : `bg-gradient-to-br ${getAvatarColor(member.userId)} text-white font-semibold text-sm`
+                          }`}>
+                            {member.avatarUrl ? (
+                              <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
+                            ) : (
+                              member.avatar
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold text-gray-800 truncate">{member.name}</p>
@@ -663,8 +711,14 @@ export default function GroupDetailPage() {
                   <div className="space-y-3">
                     {admins.map((admin) => (
                       <div key={admin.id} className="flex items-center gap-3">
-                        <div className={`flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br ${getAvatarColor(admin.userId)} text-white font-semibold text-xs`}>
-                          {admin.avatar}
+                        <div className={`flex items-center justify-center w-8 h-8 rounded-full overflow-hidden ${
+                          admin.avatarUrl ? '' : `bg-gradient-to-br ${getAvatarColor(admin.userId)} text-white font-semibold text-xs`
+                        }`}>
+                          {admin.avatarUrl ? (
+                            <img src={admin.avatarUrl} alt={admin.name} className="w-full h-full object-cover" />
+                          ) : (
+                            admin.avatar
+                          )}
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-800">{admin.name}</p>
@@ -681,7 +735,7 @@ export default function GroupDetailPage() {
                 <div className="p-5 bg-white rounded-2xl border border-gray-100 space-y-2">
                   <h3 className="mb-2 text-sm font-semibold text-gray-800">Hành động nhanh</h3>
                   <Link
-                    href="/community/create"
+                    href={`/community/create?groupId=${groupId}`}
                     className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-slate-50 hover:text-slate-600 rounded-xl transition-colors"
                   >
                     <Plus size={16} /> Tạo bài viết

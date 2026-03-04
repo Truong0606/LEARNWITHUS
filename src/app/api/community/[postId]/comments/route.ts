@@ -53,9 +53,10 @@ export async function POST(
 
     // Get user info
     const userDoc = await adminDb.collection(COLLECTIONS.users).doc(payload.userId).get();
-    const userData = userDoc.data();
+    const userData = userDoc.data() as { fullName?: string; avatarUrl?: string } | undefined;
     const authorName = userData?.fullName || payload.userName;
     const initials = authorName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
+    const authorAvatarUrl = userData?.avatarUrl || null;
 
     const now = FieldValue.serverTimestamp();
     const commentId = generateId();
@@ -66,6 +67,7 @@ export async function POST(
       authorId: payload.userId,
       authorName,
       authorAvatar: initials,
+      authorAvatarUrl,
       body: commentBody.trim(),
       parentId: parentId || null,
       likesCount: 0,
