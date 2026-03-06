@@ -7,6 +7,7 @@ import { Footer, Header } from '@/components/shared';
 import {
   Bookmark,
   BookmarkCheck,
+  Crown,
   Heart,
   Loader2,
   MessageSquare,
@@ -30,6 +31,7 @@ interface PostData {
   authorAvatar: string;
   authorAvatarUrl?: string | null;
   authorTag: string;
+  authorIsVip?: boolean;
   groupId: string | null;
   groupName: string | null;
   title: string;
@@ -155,6 +157,12 @@ function PostCard({ post }: { post: PostData }) {
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-semibold text-gray-800">{post.authorName}</span>
+              {post.authorIsVip && (
+                <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                  <Crown size={9} />
+                  VIP
+                </span>
+              )}
               <span className="text-xs text-gray-400">{post.authorTag}</span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">

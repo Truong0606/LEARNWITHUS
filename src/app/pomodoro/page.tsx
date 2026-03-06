@@ -1,19 +1,32 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { Header, Footer } from '@/components/shared';
-import { 
-  Play, 
-  Pause, 
-  RotateCcw, 
-  Coffee, 
-  Brain, 
+import {
+  Play,
+  Pause,
+  RotateCcw,
+  Coffee,
+  Brain,
   Sparkles,
   Timer,
   Target,
-  Flame
+  Flame,
+  Crown,
+  TrendingUp,
+  Lock,
+  RefreshCw,
 } from 'lucide-react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from 'recharts';
 
 type TimerMode = 'focus' | 'shortBreak' | 'longBreak';
 
@@ -25,8 +38,8 @@ interface TimerConfig {
 
 const DEFAULT_TIMES: TimerConfig = {
   focus: 25 * 60, // 25 minutes in seconds
-  shortBreak: 5 * 60, // 5 minutes
-  longBreak: 15 * 60, // 15 minutes
+  shortBreak: 5 * 60,
+  longBreak: 15 * 60,
 };
 
 const MODE_LABELS: Record<TimerMode, string> = {
@@ -41,11 +54,102 @@ const MODE_ICONS: Record<TimerMode, React.ReactNode> = {
   longBreak: <Sparkles size={20} />,
 };
 
+interface VipStats {
+  totalSessions: number;
+  totalMinutes: number;
+  streak: number;
+  weeklyData: { date: string; sessions: number; minutes: number }[];
+  monthlyData: { week: string; sessions: number; minutes: number }[];
+  subjectBreakdown: { subject: string; count: number }[];
+}
+
+// Focus duration in minutes for display
+const FOCUS_MINUTES = DEFAULT_TIMES.focus / 60;
+
 export default function PomodoroPage() {
   const [mode, setMode] = useState<TimerMode>('focus');
   const [timeLeft, setTimeLeft] = useState(DEFAULT_TIMES.focus);
   const [isRunning, setIsRunning] = useState(false);
   const [completedSessions, setCompletedSessions] = useState(0);
+  const [token, setToken] = useState<string | null>(null);
+  const [isVip, setIsVip] = useState(false);
+  const [vipStats, setVipStats] = useState<VipStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsError, setStatsError] = useState(false);
+  const [currentSubject, setCurrentSubject] = useState('');
+
+  // Ref to prevent double-firing completion (guards against stale closure re-runs)
+  const completionFiredRef = useRef(false);
+  // Ref to always have the latest saveSession without adding it to timer effect deps
+  const saveSessionRef = useRef<(duration: number) => Promise<void>>(() => Promise.resolve());
+
+  // Load token and VIP status on mount
+  useEffect(() => {
+    const t = localStorage.getItem('token');
+    setToken(t);
+    if (t) {
+      fetch('/api/upgrade', { headers: { Authorization: `Bearer ${t}` } })
+        .then((r) => r.ok ? r.json() : null)
+        .then((json) => {
+          if (json?.data?.isVip) setIsVip(true);
+        })
+        .catch(() => {});
+    }
+  }, []);
+
+  // Load VIP stats
+  const loadVipStats = useCallback(async (t: string) => {
+    setStatsLoading(true);
+    setStatsError(false);
+    try {
+      const res = await fetch('/api/pomodoro/stats', {
+        headers: { Authorization: `Bearer ${t}` },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setVipStats(json.data);
+      } else {
+        setStatsError(true);
+      }
+    } catch {
+      setStatsError(true);
+    } finally {
+      setStatsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isVip && token) {
+      loadVipStats(token);
+    }
+  }, [isVip, token, loadVipStats]);
+
+  // Save completed session to API
+  const saveSession = useCallback(async (duration: number) => {
+    if (!token) return;
+    try {
+      await fetch('/api/pomodoro/session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          duration,
+          subject: currentSubject || null,
+          completedAt: new Date().toISOString(),
+        }),
+      });
+      if (isVip) loadVipStats(token);
+    } catch {
+      // silent fail
+    }
+  }, [token, currentSubject, isVip, loadVipStats]);
+
+  // Keep saveSessionRef in sync so the completion effect can call it without being in deps
+  useEffect(() => {
+    saveSessionRef.current = saveSession;
+  }, [saveSession]);
 
   // Format time as MM:SS
   const formatTime = (seconds: number): string => {
@@ -60,11 +164,12 @@ export default function PomodoroPage() {
     return ((total - timeLeft) / total) * 100;
   };
 
-  // Handle mode change
+  // Handle mode change — resets timer and completion guard
   const handleModeChange = useCallback((newMode: TimerMode) => {
     setMode(newMode);
     setTimeLeft(DEFAULT_TIMES[newMode]);
     setIsRunning(false);
+    completionFiredRef.current = false;
   }, []);
 
   // Handle Start/Pause
@@ -72,40 +177,52 @@ export default function PomodoroPage() {
     setIsRunning((prev) => !prev);
   };
 
-  // Handle Reset
-  const resetTimer = () => {
+  // Handle Reset — also resets completion guard
+  const resetTimer = useCallback(() => {
     setTimeLeft(DEFAULT_TIMES[mode]);
     setIsRunning(false);
-  };
+    completionFiredRef.current = false;
+  }, [mode]);
 
-  // Timer countdown effect
+  // EFFECT 1: Ticking — only depends on isRunning, NOT on saveSession
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    if (!isRunning || timeLeft <= 0) return;
+    const interval = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [isRunning, timeLeft]);
 
-    if (isRunning && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft((prev) => prev - 1);
-      }, 1000);
-    } else if (timeLeft === 0) {
-      // Timer completed
-      setIsRunning(false);
-      if (mode === 'focus') {
-        setCompletedSessions((prev) => prev + 1);
-        // Play notification sound (optional)
-        if (typeof window !== 'undefined' && 'Notification' in window) {
-          new Audio('/notification.mp3').play().catch(() => {});
-        }
+  // EFFECT 2: Reset the completion guard whenever timeLeft is non-zero
+  // This ensures the next countdown cycle can fire completion again
+  useEffect(() => {
+    if (timeLeft > 0) {
+      completionFiredRef.current = false;
+    }
+  }, [timeLeft]);
+
+  // EFFECT 3: Completion detection — fires ONCE per cycle via completionFiredRef
+  // Does NOT depend on saveSession (uses saveSessionRef instead)
+  useEffect(() => {
+    if (timeLeft !== 0 || completionFiredRef.current) return;
+    completionFiredRef.current = true;
+    setIsRunning(false);
+
+    if (mode === 'focus') {
+      setCompletedSessions((prev) => prev + 1);
+      saveSessionRef.current(FOCUS_MINUTES); // use ref — no dep on saveSession
+      if (typeof window !== 'undefined') {
+        new Audio('/notification.mp3').play().catch(() => {});
       }
     }
 
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isRunning, timeLeft, mode]);
+    // Auto-reset so the user can press Start for the next session immediately
+    setTimeLeft(DEFAULT_TIMES[mode]);
+  }, [timeLeft, mode]); // intentionally excludes saveSession
 
   // Update document title with timer
   useEffect(() => {
-    document.title = isRunning 
+    document.title = isRunning
       ? `${formatTime(timeLeft)} - ${MODE_LABELS[mode]} | StudyHub`
       : 'Pomodoro Timer | StudyHub';
   }, [timeLeft, isRunning, mode]);
@@ -138,6 +255,8 @@ export default function PomodoroPage() {
   };
 
   const colors = getModeColors();
+  const realStreak = vipStats?.streak ?? 0;
+  const totalFocusMinutes = completedSessions * FOCUS_MINUTES;
 
   return (
     <div className={`min-h-screen bg-gradient-to-br ${colors.light} transition-all duration-500`}>
@@ -172,6 +291,19 @@ export default function PomodoroPage() {
             ))}
           </div>
         </div>
+
+        {/* Subject Input (saved with session) */}
+        {token && (
+          <div className="flex justify-center mb-6">
+            <input
+              type="text"
+              value={currentSubject}
+              onChange={(e) => setCurrentSubject(e.target.value)}
+              placeholder="Đang học gì? (tùy chọn)"
+              className="w-full max-w-xs px-4 py-2 text-sm text-gray-700 bg-white rounded-xl border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
+            />
+          </div>
+        )}
 
         {/* Timer Display */}
         <div className="flex flex-col items-center justify-center mb-10">
@@ -267,9 +399,9 @@ export default function PomodoroPage() {
               <h3 className="font-semibold text-gray-800">Thời gian học</h3>
             </div>
             <p className="text-3xl font-bold text-emerald-600">
-              {Math.floor((completedSessions * 25) / 60)}h {(completedSessions * 25) % 60}m
+              {Math.floor(totalFocusMinutes / 60)}h {totalFocusMinutes % 60}m
             </p>
-            <p className="mt-1 text-sm text-gray-500">tổng thời gian</p>
+            <p className="mt-1 text-sm text-gray-500">hôm nay</p>
           </div>
 
           <div className="p-6 bg-white rounded-2xl shadow-lg border border-amber-100">
@@ -279,10 +411,175 @@ export default function PomodoroPage() {
               </div>
               <h3 className="font-semibold text-gray-800">Chuỗi ngày</h3>
             </div>
-            <p className="text-3xl font-bold text-amber-600">7 ngày</p>
-            <p className="mt-1 text-sm text-gray-500">liên tiếp học tập</p>
+            {isVip ? (
+              <>
+                <p className="text-3xl font-bold text-amber-600">{realStreak} ngày</p>
+                <p className="mt-1 text-sm text-gray-500">liên tiếp học tập</p>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-1.5">
+                  <Lock size={16} className="text-gray-400" />
+                  <span className="text-sm text-gray-400">VIP only</span>
+                </div>
+                <p className="mt-1 text-sm text-gray-500">
+                  <Link href="/upgrade" className="text-amber-600 font-medium hover:underline">Nâng cấp VIP</Link> để xem
+                </p>
+              </>
+            )}
           </div>
         </div>
+
+        {/* VIP Stats Section */}
+        {isVip && (
+          <div className="mt-8 space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Crown size={20} className="text-amber-500" />
+                <h2 className="text-lg font-bold text-gray-800">Thống kê nâng cao (VIP)</h2>
+              </div>
+              {token && (
+                <button
+                  onClick={() => loadVipStats(token)}
+                  className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
+                >
+                  <RefreshCw size={14} />
+                  Làm mới
+                </button>
+              )}
+            </div>
+
+            {statsLoading ? (
+              <div className="flex justify-center py-12">
+                <div className="w-8 h-8 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+              </div>
+            ) : statsError ? (
+              <div className="flex flex-col items-center py-10 gap-3 bg-white rounded-2xl border border-red-100">
+                <p className="text-sm text-red-500 font-medium">Không thể tải thống kê</p>
+                {token && (
+                  <button
+                    onClick={() => loadVipStats(token)}
+                    className="flex items-center gap-1.5 text-sm text-blue-600 hover:underline"
+                  >
+                    <RefreshCw size={13} /> Thử lại
+                  </button>
+                )}
+              </div>
+            ) : vipStats ? (
+              <>
+                {/* Summary row */}
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 text-center">
+                    <p className="text-2xl font-bold text-slate-700">{vipStats.totalSessions}</p>
+                    <p className="text-sm text-gray-500 mt-0.5">Tổng phiên học</p>
+                  </div>
+                  <div className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 text-center">
+                    <p className="text-2xl font-bold text-emerald-600">
+                      {Math.floor(vipStats.totalMinutes / 60)}h {vipStats.totalMinutes % 60}m
+                    </p>
+                    <p className="text-sm text-gray-500 mt-0.5">Tổng thời gian</p>
+                  </div>
+                  <div className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 text-center">
+                    <p className="text-2xl font-bold text-amber-600">{vipStats.streak} ngày</p>
+                    <p className="text-sm text-gray-500 mt-0.5">Chuỗi ngày hiện tại</p>
+                  </div>
+                </div>
+
+                {/* Weekly Chart */}
+                <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
+                  <div className="flex items-center gap-2 mb-4">
+                    <TrendingUp size={18} className="text-slate-600" />
+                    <h3 className="font-semibold text-gray-800">7 ngày gần nhất</h3>
+                  </div>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={vipStats.weeklyData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                      <Tooltip
+                        formatter={(value) => [`${value ?? 0} phiên`, 'Pomodoro']}
+                        contentStyle={{ borderRadius: 8, border: '1px solid #e2e8f0' }}
+                      />
+                      <Bar dataKey="sessions" fill="#475569" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Monthly Chart */}
+                <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
+                  <div className="flex items-center gap-2 mb-4">
+                    <TrendingUp size={18} className="text-emerald-600" />
+                    <h3 className="font-semibold text-gray-800">4 tuần gần nhất</h3>
+                  </div>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart data={vipStats.monthlyData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f0fdf4" />
+                      <XAxis dataKey="week" tick={{ fontSize: 10 }} />
+                      <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                      <Tooltip
+                        formatter={(value) => [`${value ?? 0} phiên`, 'Pomodoro']}
+                        contentStyle={{ borderRadius: 8, border: '1px solid #d1fae5' }}
+                      />
+                      <Bar dataKey="sessions" fill="#10b981" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Subject Breakdown */}
+                {vipStats.subjectBreakdown.length > 0 && (
+                  <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
+                    <h3 className="font-semibold text-gray-800 mb-4">Môn học nhiều nhất</h3>
+                    <div className="space-y-2.5">
+                      {vipStats.subjectBreakdown.map(({ subject, count }) => {
+                        const max = vipStats.subjectBreakdown[0].count;
+                        return (
+                          <div key={subject} className="flex items-center gap-3">
+                            <span className="w-32 text-sm text-gray-600 truncate">{subject}</span>
+                            <div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-slate-600 rounded-full"
+                                style={{ width: `${(count / max) * 100}%` }}
+                              />
+                            </div>
+                            <span className="text-sm font-semibold text-slate-700 w-12 text-right">{count} phiên</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Empty state when no sessions yet */}
+                {vipStats.totalSessions === 0 && (
+                  <div className="p-8 bg-white rounded-2xl border border-gray-100 text-center">
+                    <p className="text-gray-400 text-sm">Chưa có phiên học nào. Hoàn thành phiên Pomodoro đầu tiên để thấy thống kê!</p>
+                  </div>
+                )}
+              </>
+            ) : null}
+          </div>
+        )}
+
+        {/* Non-VIP stats teaser */}
+        {!isVip && token && (
+          <div className="mt-8 p-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border border-amber-200">
+            <div className="flex items-center gap-3 mb-2">
+              <Crown size={20} className="text-amber-500" />
+              <h3 className="font-semibold text-amber-800">Thống kê Pomodoro nâng cao</h3>
+            </div>
+            <p className="text-sm text-amber-700 mb-4">
+              Xem lịch sử, biểu đồ theo tuần/tháng, chuỗi ngày học tập và phân tích môn học với tài khoản VIP.
+            </p>
+            <Link
+              href="/upgrade"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl hover:shadow-lg transition-all"
+            >
+              <Crown size={15} />
+              Nâng cấp VIP ngay
+            </Link>
+          </div>
+        )}
 
         {/* Tips Section */}
         <div className="mt-8 p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200">

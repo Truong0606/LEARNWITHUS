@@ -58,20 +58,35 @@ export async function GET(
 
     // Check permission
     if (payload.role === 'Client') {
-      const bookingDoc = await adminDb
-        .collection(COLLECTIONS.testBookings)
-        .doc(payment.bookingId)
-        .get();
+      if (payment.bookingId) {
+        const bookingDoc = await adminDb
+          .collection(COLLECTIONS.testBookings)
+          .doc(payment.bookingId)
+          .get();
 
-      if (bookingDoc.exists) {
-        const booking = bookingDoc.data() as TestBooking;
-        if (booking.clientId !== payload.userId) {
+        if (bookingDoc.exists) {
+          const booking = bookingDoc.data() as TestBooking;
+          if (booking.clientId !== payload.userId) {
+            return NextResponse.json<ApiResponse<null>>(
+              { data: null, message: 'Không có quyền truy cập', statusCode: 403 },
+              { status: 403 }
+            );
+          }
+          payment.booking = booking;
+        }
+      } else if (payment.mentorBookingId) {
+        // Mentor booking payment: only the booking owner can access
+        const mbDoc = await adminDb
+          .collection(COLLECTIONS.mentorBookings)
+          .doc(payment.mentorBookingId)
+          .get();
+
+        if (mbDoc.exists && (mbDoc.data() as { userId: string }).userId !== payload.userId) {
           return NextResponse.json<ApiResponse<null>>(
             { data: null, message: 'Không có quyền truy cập', statusCode: 403 },
             { status: 403 }
           );
         }
-        payment.booking = booking;
       }
     }
 
@@ -157,14 +172,28 @@ export async function DELETE(
 
     // Check permission
     if (payload.role === 'Client') {
-      const bookingDoc = await adminDb
-        .collection(COLLECTIONS.testBookings)
-        .doc(payment.bookingId)
-        .get();
+      if (payment.bookingId) {
+        const bookingDoc = await adminDb
+          .collection(COLLECTIONS.testBookings)
+          .doc(payment.bookingId)
+          .get();
 
-      if (bookingDoc.exists) {
-        const booking = bookingDoc.data() as TestBooking;
-        if (booking.clientId !== payload.userId) {
+        if (bookingDoc.exists) {
+          const booking = bookingDoc.data() as TestBooking;
+          if (booking.clientId !== payload.userId) {
+            return NextResponse.json<ApiResponse<null>>(
+              { data: null, message: 'Không có quyền hủy thanh toán này', statusCode: 403 },
+              { status: 403 }
+            );
+          }
+        }
+      } else if (payment.mentorBookingId) {
+        const mbDoc = await adminDb
+          .collection(COLLECTIONS.mentorBookings)
+          .doc(payment.mentorBookingId)
+          .get();
+
+        if (mbDoc.exists && (mbDoc.data() as { userId: string }).userId !== payload.userId) {
           return NextResponse.json<ApiResponse<null>>(
             { data: null, message: 'Không có quyền hủy thanh toán này', statusCode: 403 },
             { status: 403 }

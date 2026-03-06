@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Header, Footer } from '@/components/shared';
 import {
   Check,
@@ -11,7 +11,9 @@ import {
   Crown,
   Zap,
   ArrowRight,
+  Loader2,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const vipBenefits = [
   { icon: GraduationCap, text: '2 buổi Mentor miễn phí mỗi tháng' },
@@ -25,7 +27,7 @@ const plans = [
   {
     id: 'monthly',
     name: 'Hàng tháng',
-    price: 99000,
+    price: 5000,
     period: 'tháng',
     popular: false,
     savings: null,
@@ -46,13 +48,64 @@ const plans = [
     popular: false,
     savings: 'Tiết kiệm 33%',
   },
-];
+] as const;
+
+type PlanId = (typeof plans)[number]['id'];
 
 export default function UpgradePage() {
-  const [selectedPlan, setSelectedPlan] = useState('quarterly');
+  const router = useRouter();
+  const [selectedPlan, setSelectedPlan] = useState<PlanId>('quarterly');
+  const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    setToken(localStorage.getItem('token'));
+  }, []);
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+
+  const selectedPlanData = plans.find((p) => p.id === selectedPlan)!;
+
+  const handleUpgrade = async () => {
+    if (!token) {
+      toast.error('Vui lòng đăng nhập để nâng cấp VIP');
+      router.push('/login?redirect=/upgrade');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch('/api/upgrade', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ planId: selectedPlan }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        toast.error(json.message || 'Không thể tạo thanh toán');
+        return;
+      }
+
+      const { checkoutUrl } = json.data;
+      if (!checkoutUrl) {
+        toast.error('Không nhận được link thanh toán');
+        return;
+      }
+
+      // Chuyển hướng đến trang thanh toán PayOS
+      window.location.href = checkoutUrl;
+    } catch {
+      toast.error('Lỗi kết nối, vui lòng thử lại');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -140,13 +193,31 @@ export default function UpgradePage() {
 
         {/* CTA */}
         <div className="text-center">
-          <button className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-slate-600 to-slate-800 px-8 py-4 font-semibold text-white shadow-lg transition-all hover:shadow-xl">
-            Nâng cấp ngay
-            <ArrowRight size={20} />
+          <button
+            onClick={handleUpgrade}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-slate-600 to-slate-800 px-8 py-4 font-semibold text-white shadow-lg transition-all hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <>
+                <Loader2 size={20} className="animate-spin" />
+                Đang xử lý...
+              </>
+            ) : (
+              <>
+                Nâng cấp {selectedPlanData.name} — {formatPrice(selectedPlanData.price)}
+                <ArrowRight size={20} />
+              </>
+            )}
           </button>
           <p className="mt-4 text-sm text-gray-500">
-            Thanh toán an toàn qua PayOS / VNPay
+            Thanh toán an toàn qua PayOS
           </p>
+          {!token && (
+            <p className="mt-2 text-sm text-amber-600 font-medium">
+              Bạn cần đăng nhập trước khi nâng cấp
+            </p>
+          )}
         </div>
 
         {/* FAQ */}

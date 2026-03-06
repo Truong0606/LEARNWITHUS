@@ -143,6 +143,7 @@ export const COLLECTIONS = {
   communityComments: 'communityComments',
   mentorRequests: 'mentorRequests',
   mentorBookings: 'mentorBookings',
+  pomodoroSessions: 'pomodoroSessions',
 } as const;
 
 export default admin;

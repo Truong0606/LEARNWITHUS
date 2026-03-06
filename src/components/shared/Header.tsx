@@ -5,14 +5,14 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Crown, GraduationCap, LogOut, Menu, User, X, BookOpen, Users, Shield } from 'lucide-react';
 
-const navLinks = [
+const baseNavLinks = [
   { href: '/', label: 'Trang chủ' },
   { href: '/about', label: 'Giới thiệu' },
   { href: '/community', label: 'Cộng đồng' },
   { href: '/groups', label: 'Nhóm học' },
   { href: '/pomodoro', label: 'Pomodoro' },
   { href: '/mentors', label: 'Mentor' },
-  { href: '/upgrade', label: 'VIP' },
+  { href: '/upgrade', label: 'VIP', vipOnly: false }, // ẩn khi user đã là VIP
 ];
 
 interface UserInfo {
@@ -27,6 +27,7 @@ export default function Header() {
   const [isAvatarOpen, setIsAvatarOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [isVip, setIsVip] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const avatarRef = useRef<HTMLDivElement>(null);
@@ -39,25 +40,51 @@ export default function Header() {
         const user = JSON.parse(userStr) as UserInfo;
         setIsLoggedIn(true);
         setUserInfo(user);
+        return token;
       } catch {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
       }
+    } else {
+      setIsLoggedIn(false);
+      setUserInfo(null);
+      setIsVip(false);
+    }
+    return null;
+  }, []);
+
+  // Kiểm tra VIP status từ API
+  const checkVipStatus = useCallback(async (token: string) => {
+    try {
+      const res = await fetch('/api/upgrade', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setIsVip(json.data?.isVip === true);
+      }
+    } catch {
+      // silent fail - VIP status không critical với UX
     }
   }, []);
 
   useEffect(() => {
-    loadUserFromStorage();
-  }, [pathname, loadUserFromStorage]);
+    const token = loadUserFromStorage();
+    if (token) checkVipStatus(token);
+  }, [pathname, loadUserFromStorage, checkVipStatus]);
 
   useEffect(() => {
-    window.addEventListener('storage', loadUserFromStorage);
-    window.addEventListener('user-avatar-updated', loadUserFromStorage);
-    return () => {
-      window.removeEventListener('storage', loadUserFromStorage);
-      window.removeEventListener('user-avatar-updated', loadUserFromStorage);
+    const handleStorageOrEvent = () => {
+      const token = loadUserFromStorage();
+      if (token) checkVipStatus(token);
     };
-  }, [loadUserFromStorage]);
+    window.addEventListener('storage', handleStorageOrEvent);
+    window.addEventListener('user-avatar-updated', handleStorageOrEvent);
+    return () => {
+      window.removeEventListener('storage', handleStorageOrEvent);
+      window.removeEventListener('user-avatar-updated', handleStorageOrEvent);
+    };
+  }, [loadUserFromStorage, checkVipStatus]);
 
   // Close avatar dropdown when clicking outside
   useEffect(() => {
@@ -75,11 +102,11 @@ export default function Header() {
     localStorage.removeItem('user');
     setIsLoggedIn(false);
     setUserInfo(null);
+    setIsVip(false);
     setIsAvatarOpen(false);
     router.push('/');
   };
 
-  // Get user initials for avatar
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -88,6 +115,11 @@ export default function Header() {
       .join('')
       .toUpperCase();
   };
+
+  // Ẩn link "VIP" khi user đã là VIP
+  const navLinks = baseNavLinks.filter(
+    (link) => !(link.href === '/upgrade' && isLoggedIn && isVip)
+  );
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-sm border-b border-slate-200">
@@ -134,11 +166,17 @@ export default function Header() {
                   <span className="text-sm text-gray-600 hidden lg:block">
                     {userInfo.userName}
                   </span>
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 text-white font-semibold text-sm cursor-pointer hover:shadow-lg hover:shadow-slate-200 transition-all overflow-hidden">
+                  {/* Avatar với ring vàng nếu VIP */}
+                  <div className={`relative flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 text-white font-semibold text-sm cursor-pointer hover:shadow-lg transition-all overflow-hidden ${isVip ? 'ring-2 ring-amber-400 ring-offset-1' : 'hover:shadow-slate-200'}`}>
                     {userInfo.avatarUrl ? (
                       <img src={userInfo.avatarUrl} alt={userInfo.userName} className="w-full h-full object-cover" />
                     ) : (
                       getInitials(userInfo.userName)
+                    )}
+                    {isVip && (
+                      <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-400 text-[8px]">
+                        👑
+                      </span>
                     )}
                   </div>
                 </button>
@@ -148,7 +186,15 @@ export default function Header() {
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                     {/* User info header */}
                     <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-semibold text-gray-800">{userInfo.userName}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-gray-800">{userInfo.userName}</p>
+                        {isVip && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                            <Crown size={10} />
+                            VIP
+                          </span>
+                        )}
+                      </div>
                       <p className="text-xs text-gray-500">{userInfo.role}</p>
                     </div>
 
@@ -199,14 +245,18 @@ export default function Header() {
                           Đăng ký Mentor
                         </Link>
                       )}
-                      <Link
-                        href="/upgrade"
-                        onClick={() => setIsAvatarOpen(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-slate-50 hover:text-slate-700 transition-colors"
-                      >
-                        <Crown size={18} />
-                        Nâng cấp VIP
-                      </Link>
+
+                      {/* Ẩn "Nâng cấp VIP" khi đã là VIP */}
+                      {!isVip && (
+                        <Link
+                          href="/upgrade"
+                          onClick={() => setIsAvatarOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-amber-600 hover:bg-amber-50 transition-colors"
+                        >
+                          <Crown size={18} />
+                          Nâng cấp VIP
+                        </Link>
+                      )}
                     </div>
 
                     {/* Logout */}
@@ -272,16 +322,24 @@ export default function Header() {
               {isLoggedIn && userInfo ? (
                 <>
                   <div className="flex items-center gap-3 px-4 py-2">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 text-white font-semibold text-xs overflow-hidden">
+                    <div className={`relative flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 text-white font-semibold text-xs overflow-hidden ${isVip ? 'ring-2 ring-amber-400 ring-offset-1' : ''}`}>
                       {userInfo.avatarUrl ? (
                         <img src={userInfo.avatarUrl} alt={userInfo.userName} className="w-full h-full object-cover" />
                       ) : (
                         getInitials(userInfo.userName)
                       )}
                     </div>
-                    <span className="text-sm font-semibold text-gray-800">
-                      {userInfo.userName}
-                    </span>
+                    <div>
+                      <span className="text-sm font-semibold text-gray-800">
+                        {userInfo.userName}
+                      </span>
+                      {isVip && (
+                        <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                          <Crown size={9} />
+                          VIP
+                        </span>
+                      )}
+                    </div>
                   </div>
                   {userInfo.role === 'Admin' && (
                     <Link
@@ -309,6 +367,16 @@ export default function Header() {
                     <BookOpen size={18} />
                     Không gian học
                   </Link>
+                  {!isVip && (
+                    <Link
+                      href="/upgrade"
+                      className="flex items-center gap-3 px-4 py-2 text-sm font-medium text-amber-600 hover:bg-amber-50 rounded-lg"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Crown size={18} />
+                      Nâng cấp VIP
+                    </Link>
+                  )}
                   <button
                     onClick={() => {
                       handleLogout();

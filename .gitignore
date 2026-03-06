@@ -42,6 +42,3 @@ next-env.d.ts
 
 # Firebase Service Account Key (SENSITIVE - NEVER COMMIT!)
 serviceAccountKey.json
-
-# Local uploads (avatars, community images)
-/public/uploads

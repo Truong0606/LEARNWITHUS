@@ -5,7 +5,8 @@ import { adminDb, COLLECTIONS } from '@/lib/firebase/admin';
 import { generateId } from '@/lib/firebase/firestore';
 import { verifyToken } from '@/lib/utils';
 import { FieldValue } from 'firebase-admin/firestore';
-import type { ApiResponse } from '@/types';
+import type { ApiResponse, User } from '@/types';
+import { getVipStatusFromUser } from '@/lib/vip';
 
 export async function POST(
   request: NextRequest,
@@ -53,10 +54,11 @@ export async function POST(
 
     // Get user info
     const userDoc = await adminDb.collection(COLLECTIONS.users).doc(payload.userId).get();
-    const userData = userDoc.data() as { fullName?: string; avatarUrl?: string } | undefined;
+    const userData = userDoc.data() as User | undefined;
     const authorName = userData?.fullName || payload.userName;
     const initials = authorName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
     const authorAvatarUrl = userData?.avatarUrl || null;
+    const authorIsVip = userData ? getVipStatusFromUser(userData).isVip : false;
 
     const now = FieldValue.serverTimestamp();
     const commentId = generateId();
@@ -68,6 +70,7 @@ export async function POST(
       authorName,
       authorAvatar: initials,
       authorAvatarUrl,
+      authorIsVip,
       body: commentBody.trim(),
       parentId: parentId || null,
       likesCount: 0,

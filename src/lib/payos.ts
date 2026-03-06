@@ -16,7 +16,7 @@ const payos = new PayOS({
 });
 
 // PayOS Configuration (for return/cancel URLs)
-const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').trim();
 export const PAYOS_CONFIG = {
   clientId: process.env.PAYOS_CLIENT_ID || '',
   apiKey: process.env.PAYOS_API_KEY || '',
@@ -210,4 +210,18 @@ export function calculateDepositAmount(totalAmount: number): number {
 // Calculate remaining amount (70% of total)
 export function calculateRemainingAmount(totalAmount: number): number {
   return totalAmount - calculateDepositAmount(totalAmount);
+}
+
+// Register webhook URL with PayOS (call once from admin panel)
+export async function confirmWebhook(webhookUrl: string): Promise<{ success: boolean; message: string }> {
+  try {
+    await payos.webhooks.confirm(webhookUrl);
+    return { success: true, message: `Webhook đã được đăng ký: ${webhookUrl}` };
+  } catch (err) {
+    const error = err as { code?: string; desc?: string; message?: string };
+    return {
+      success: false,
+      message: error.desc || error.message || 'Lỗi đăng ký webhook',
+    };
+  }
 }

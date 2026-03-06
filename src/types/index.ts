@@ -123,6 +123,12 @@ export interface User extends BaseEntity {
   passwordHash?: string;  // Not exposed to client
   role: UserRole;
   isActive: boolean;
+  // VIP status
+  vipPlan?: VipPlanId;
+  vipExpiresAt?: Date;
+  // VIP free mentor sessions (tracks current month usage, key = "YYYY-MM")
+  vipFreeSessionsMonthKey?: string;
+  vipFreeSessionsUsed?: number;
 }
 
 // Test Service
@@ -204,7 +210,25 @@ export interface TestResult extends BaseEntity {
   resultFileUrl: string;
 }
 
+// VIP Plan
+export type VipPlanId = 'monthly' | 'quarterly' | 'yearly';
+
+export interface VipPlan {
+  id: VipPlanId;
+  name: string;
+  price: number;
+  durationDays: number;
+}
+
+export const VIP_PLANS: Record<VipPlanId, VipPlan> = {
+  monthly:   { id: 'monthly',   name: 'Hàng tháng', price: 5000,  durationDays: 30  },
+  quarterly: { id: 'quarterly', name: '3 tháng',    price: 249000, durationDays: 90  },
+  yearly:    { id: 'yearly',    name: '1 năm',       price: 799000, durationDays: 365 },
+};
+
 // Payment
+export type PaymentFor = 'test_booking' | 'mentor_booking' | 'vip_upgrade';
+
 export interface Payment extends BaseEntity {
   orderCode: number;
   amount: number;
@@ -213,8 +237,17 @@ export interface Payment extends BaseEntity {
   status: PaymentStatus;
   paidAt?: Date;
   description?: string;
-  bookingId: string;
+  // test booking payment
+  bookingId?: string;
   booking?: TestBooking;
+  // mentor booking payment
+  mentorBookingId?: string;
+  mentorBooking?: MentorBooking;
+  // vip upgrade payment
+  userId?: string;
+  planId?: VipPlanId;
+  // payment target discriminator
+  paymentFor?: PaymentFor;
 }
 
 // Logistics Info
@@ -344,6 +377,7 @@ export interface CommunityPost extends BaseEntity {
   authorAvatar: string; // initials e.g. "HM"
   authorAvatarUrl?: string | null; // user's actual avatar image URL
   authorTag: string; // e.g. "SV - Khoa CNTT"
+  authorIsVip?: boolean; // VIP badge on post
   groupId: string | null;
   groupName: string | null;
   title: string;
@@ -365,6 +399,7 @@ export interface CommunityComment extends BaseEntity {
   authorName: string;
   authorAvatar: string;
   authorAvatarUrl?: string | null;
+  authorIsVip?: boolean; // VIP badge on comment
   body: string;
   parentId: string | null; // null = top-level, else reply
   likesCount: number;

@@ -6,7 +6,8 @@ import { adminDb, COLLECTIONS } from '@/lib/firebase/admin';
 import { generateId } from '@/lib/firebase/firestore';
 import { verifyToken } from '@/lib/utils';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
-import type { ApiResponse, CommunityPost } from '@/types';
+import type { ApiResponse, CommunityPost, User } from '@/types';
+import { getVipStatusFromUser } from '@/lib/vip';
 
 function serializeTimestamps<T extends Record<string, unknown>>(doc: T): T {
   const result = { ...doc };
@@ -68,15 +69,17 @@ export async function GET(request: NextRequest) {
       posts = posts.filter(p => p.tags.some(t => t.toLowerCase().includes(tag.toLowerCase())));
     }
 
-    // Enrich with authorAvatarUrl from users (for posts that don't have it stored)
+    // Enrich with authorAvatarUrl and authorIsVip from users
     const authorIds = [...new Set(posts.map(p => p.authorId).filter(Boolean))];
     const avatarMap: Record<string, string> = {};
+    const vipMap: Record<string, boolean> = {};
     if (authorIds.length > 0) {
       const refs = authorIds.map(id => adminDb.collection(COLLECTIONS.users).doc(id));
       const userDocs = await adminDb.getAll(...refs);
       userDocs.forEach((doc) => {
-        const u = doc.data() as { avatarUrl?: string } | undefined;
+        const u = doc.data() as User | undefined;
         if (u?.avatarUrl) avatarMap[doc.id] = u.avatarUrl;
+        if (u) vipMap[doc.id] = getVipStatusFromUser(u).isVip;
       });
     }
 
@@ -84,6 +87,7 @@ export async function GET(request: NextRequest) {
     const postsWithUserInfo = posts.map(post => ({
       ...post,
       authorAvatarUrl: (post as { authorAvatarUrl?: string }).authorAvatarUrl || avatarMap[post.authorId] || null,
+      authorIsVip: (post as { authorIsVip?: boolean }).authorIsVip ?? vipMap[post.authorId] ?? false,
       liked_by_user: userId ? (post.likedBy || []).includes(userId) : false,
       saved_by_user: userId ? (post.savedBy || []).includes(userId) : false,
     }));
@@ -138,10 +142,17 @@ export async function POST(request: NextRequest) {
       : Promise.resolve(null);
 
     const [userDoc, groupDoc] = await Promise.all([userDocPromise, groupDocPromise]);
-    const userData = userDoc.data() as { fullName?: string; address?: string; avatarUrl?: string } | undefined;
+    const userData = userDoc.data() as User | undefined;
+    const { isVip: authorIsVip } = userData ? getVipStatusFromUser(userData) : { isVip: false };
     const authorName = anonymous ? 'Ẩn danh' : (userData?.fullName || payload.userName);
     const initials = authorName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase();
     const authorAvatarUrl = anonymous ? null : (userData?.avatarUrl || null);
+
+    // Tier 2: Limit images per post (VIP: 10, non-VIP: 3)
+    const maxImages = authorIsVip ? 10 : 3;
+    const imageList = Array.isArray(images)
+      ? images.filter((u: unknown) => typeof u === 'string').slice(0, maxImages)
+      : [];
 
     let groupName: string | null = null;
     if (groupId && groupDoc) {
@@ -164,12 +175,13 @@ export async function POST(request: NextRequest) {
       authorAvatar: initials,
       authorAvatarUrl,
       authorTag: userData?.address ? `SV - ${userData.address}` : 'Sinh viên',
+      authorIsVip,
       groupId: groupId || null,
       groupName,
       title: title?.trim() || '',
       body: postBody?.trim() || '',
       tags: tags || [],
-      images: Array.isArray(images) ? images.filter((u: unknown) => typeof u === 'string') : [],
+      images: imageList,
       likesCount: 0,
       commentsCount: 0,
       sharesCount: 0,

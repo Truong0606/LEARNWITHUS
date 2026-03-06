@@ -8,6 +8,7 @@ import { generateId } from '@/lib/firebase/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
 import type { ApiResponse, StudyGroup, StudyGroupWithMembership, GroupMembershipStatus } from '@/types';
 import { User, UserRole } from '@/types';
+import { getVipStatusFromUser } from '@/lib/vip';
 
 export async function GET(request: NextRequest) {
   try {
@@ -112,21 +113,40 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, description, subjectTags, isPrivate, coverColor } = body;
 
-    // Only Mentor can create private groups
-    if (isPrivate) {
-      const userDoc = await adminDb.collection(COLLECTIONS.users).doc(payload.userId).get();
-      if (!userDoc.exists) {
-        return NextResponse.json<ApiResponse<null>>(
-          { data: null, message: 'Không tìm thấy người dùng', statusCode: 404 },
-          { status: 404 }
-        );
-      }
-      const user = userDoc.data() as User;
-      if (user.role !== UserRole.Mentor) {
+    // Fetch user once (needed for VIP check + private group check)
+    const userDoc = await adminDb.collection(COLLECTIONS.users).doc(payload.userId).get();
+    if (!userDoc.exists) {
+      return NextResponse.json<ApiResponse<null>>(
+        { data: null, message: 'Không tìm thấy người dùng', statusCode: 404 },
+        { status: 404 }
+      );
+    }
+    const user = userDoc.data() as User;
+    const { isVip } = getVipStatusFromUser(user);
+
+    // Tier 1: Mentor OR VIP can create private groups
+    if (isPrivate && user.role !== UserRole.Mentor && !isVip) {
+      return NextResponse.json<ApiResponse<null>>(
+        {
+          data: null,
+          message: 'Chỉ tài khoản Mentor hoặc thành viên VIP mới có thể tạo nhóm học riêng tư',
+          statusCode: 403,
+        },
+        { status: 403 }
+      );
+    }
+
+    // Tier 2: non-VIP limited to max 2 groups created (as admin)
+    if (!isVip && user.role !== UserRole.Mentor && user.role !== UserRole.Admin) {
+      const createdGroupsSnap = await adminDb
+        .collection(COLLECTIONS.studyGroups)
+        .where('createdBy', '==', payload.userId)
+        .get();
+      if (createdGroupsSnap.size >= 2) {
         return NextResponse.json<ApiResponse<null>>(
           {
             data: null,
-            message: 'Chỉ tài khoản Mentor mới có thể tạo nhóm học riêng tư',
+            message: 'Thành viên thường chỉ có thể tạo tối đa 2 nhóm học. Nâng cấp VIP để tạo không giới hạn.',
             statusCode: 403,
           },
           { status: 403 }
