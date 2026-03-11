@@ -60,10 +60,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const rawData = profileDoc.data() as Record<string, unknown>;
     const profile = serializeDoc(rawData) as unknown as MentorProfile;
     // Đảm bảo profile có id (document ID) - cần cho Link và booking
-    (profile as Record<string, unknown>).id = rawData.id || profileDoc.id;
+    (profile as unknown as Record<string, unknown>).id = rawData.id || profileDoc.id;
     // Chuẩn hóa availability thành array (có thể lưu dạng string)
     const avail = rawData.availability;
-    (profile as Record<string, unknown>).availability = Array.isArray(avail)
+    (profile as unknown as Record<string, unknown>).availability = Array.isArray(avail)
       ? avail
       : typeof avail === 'string' && avail
         ? avail.split(',').map((s: string) => s.trim()).filter(Boolean)

@@ -7,26 +7,33 @@ import { Header, Footer } from '@/components/shared';
 import {
   AlertTriangle,
   ArrowLeft,
+  CheckCircle,
   Crown,
+  Download,
   FileText,
+  FileImage,
   Globe,
   Heart,
   Loader2,
+  Lock as LockIcon,
   LogOut,
   Lock,
   MessageSquare,
   MoreHorizontal,
+  Paperclip,
   Pin,
   Plus,
   Send,
   Settings,
   Share2,
   Shield,
+  Sparkles,
   UserPlus,
   Users,
   X,
+  XCircle,
 } from 'lucide-react';
-import type { StudyGroupDetail, GroupMemberRole } from '@/types';
+import type { StudyGroupDetail, GroupMemberRole, PostAttachment } from '@/types';
 
 // ─── Confirmation Modal ──────────────────────────────────────
 interface ConfirmModalProps {
@@ -125,6 +132,8 @@ interface GroupPost {
   title: string;
   body: string;
   tags: string[];
+  images?: string[];
+  attachments?: PostAttachment[];
   createdAt: string;
   likesCount: number;
   commentsCount: number;
@@ -238,6 +247,29 @@ function GroupPostCard({ post, isAdmin }: { post: GroupPost; isAdmin: boolean })
           ))}
         </div>
       )}
+      {/* Attachments */}
+      {post.attachments && post.attachments.length > 0 && (
+        <div className="mt-3 space-y-1.5">
+          {post.attachments.map((att, i) => (
+            <a
+              key={i}
+              href={att.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2.5 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 hover:bg-blue-50 hover:border-blue-200 transition-all group/att"
+            >
+              {['jpg', 'jpeg', 'png'].includes(att.type) ? (
+                <FileImage size={16} className="text-emerald-500 flex-shrink-0" />
+              ) : (
+                <FileText size={16} className="text-blue-500 flex-shrink-0" />
+              )}
+              <span className="flex-1 text-sm text-gray-700 truncate group-hover/att:text-blue-600">{att.name}</span>
+              <span className="text-xs text-gray-400">{att.type.toUpperCase()}</span>
+              <Download size={14} className="text-gray-400 group-hover/att:text-blue-500 flex-shrink-0" />
+            </a>
+          ))}
+        </div>
+      )}
       <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100">
         <button
           onClick={handleLike}
@@ -276,6 +308,9 @@ export default function GroupDetailPage() {
   const [postsLoading, setPostsLoading] = useState(false);
   const [currentUserAvatar, setCurrentUserAvatar] = useState<string | null>(null);
   const [currentUserInitials, setCurrentUserInitials] = useState('SV');
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [currentUserIsVip, setCurrentUserIsVip] = useState(false);
+  const [memberActionLoading, setMemberActionLoading] = useState<string | null>(null);
 
   const isMember = group?.userMembershipStatus === 'member';
   const isAdmin = group?.userMemberRole === 'admin';
@@ -331,6 +366,8 @@ export default function GroupDetailPage() {
 
   useEffect(() => {
     const userStr = localStorage.getItem('user');
+    const role = localStorage.getItem('role');
+    setCurrentUserRole(role);
     if (userStr) {
       try {
         const user = JSON.parse(userStr) as { fullName?: string; avatarUrl?: string };
@@ -339,6 +376,26 @@ export default function GroupDetailPage() {
           user.fullName ? user.fullName.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase() : 'SV'
         );
       } catch {}
+    }
+
+    // Check VIP status
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetch('/api/user/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.data) {
+            const u = data.data;
+            const now = new Date();
+            const vipActive = u.vipPlan && u.vipExpiresAt && new Date(u.vipExpiresAt) > now;
+            setCurrentUserIsVip(!!vipActive);
+            // Also update role from API
+            if (u.role) setCurrentUserRole(u.role);
+          }
+        })
+        .catch(() => {});
     }
   }, []);
 
@@ -424,9 +481,41 @@ export default function GroupDetailPage() {
     }
   };
 
-  const tabs: { key: GroupTab; label: string; icon: React.ReactNode }[] = [
+  const handleMemberAction = async (memberId: string, action: 'approve' | 'deny') => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    setMemberActionLoading(memberId);
+    try {
+      const res = await fetch(`/api/groups/${groupId}/members/${memberId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        // Refresh group data to update members list
+        fetchGroup();
+      } else {
+        alert(data.message || 'Có lỗi xảy ra');
+      }
+    } catch {
+      alert('Lỗi kết nối. Vui lòng thử lại.');
+    } finally {
+      setMemberActionLoading(null);
+    }
+  };
+
+  const pendingCount = group?.pendingMembers?.length || 0;
+
+  const tabs: { key: GroupTab; label: string; icon: React.ReactNode; badge?: number }[] = [
     { key: 'feed', label: 'Bảng tin', icon: <MessageSquare size={16} /> },
-    { key: 'members', label: 'Thành viên', icon: <Users size={16} /> },
+    { key: 'members', label: 'Thành viên', icon: <Users size={16} />, badge: isAdmin ? pendingCount : 0 },
     { key: 'docs', label: 'Tài liệu', icon: <FileText size={16} /> },
     { key: 'events', label: 'Sự kiện', icon: <Settings size={16} /> },
   ];
@@ -567,6 +656,11 @@ export default function GroupDetailPage() {
                 >
                   {tab.icon}
                   {tab.label}
+                  {tab.badge && tab.badge > 0 ? (
+                    <span className="flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-amber-500 rounded-full">
+                      {tab.badge}
+                    </span>
+                  ) : null}
                 </button>
               ))}
             </div>
@@ -625,6 +719,71 @@ export default function GroupDetailPage() {
               {/* Members Tab */}
               {activeTab === 'members' && (
                 <div className="space-y-3">
+                  {/* Pending Members Section (visible to admin only) */}
+                  {isAdmin && group.pendingMembers && group.pendingMembers.length > 0 && (
+                    <div className="p-5 bg-amber-50 rounded-2xl border border-amber-200 space-y-3 mb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-center w-8 h-8 bg-amber-100 rounded-lg">
+                          <UserPlus size={16} className="text-amber-600" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-amber-800">
+                            Yêu cầu tham gia ({group.pendingMembers.length})
+                          </h3>
+                          <p className="text-xs text-amber-600">Duyệt hoặc từ chối yêu cầu tham gia nhóm riêng tư</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        {group.pendingMembers.map((pending) => (
+                          <div
+                            key={pending.id}
+                            className="flex items-center gap-3 p-3 bg-white rounded-xl border border-amber-100"
+                          >
+                            <div className={`flex items-center justify-center w-10 h-10 rounded-full overflow-hidden ${
+                              pending.avatarUrl ? '' : `bg-gradient-to-br ${getAvatarColor(pending.userId)} text-white font-semibold text-sm`
+                            }`}>
+                              {pending.avatarUrl ? (
+                                <img src={pending.avatarUrl} alt={pending.name} className="w-full h-full object-cover" />
+                              ) : (
+                                pending.avatar
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-gray-800 truncate">{pending.name}</p>
+                              <p className="text-xs text-amber-600">Đang chờ duyệt</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleMemberAction(pending.id, 'approve')}
+                                disabled={memberActionLoading === pending.id}
+                                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-emerald-500 rounded-lg hover:bg-emerald-600 transition-colors disabled:opacity-50"
+                              >
+                                {memberActionLoading === pending.id ? (
+                                  <Loader2 size={12} className="animate-spin" />
+                                ) : (
+                                  <CheckCircle size={12} />
+                                )}
+                                Duyệt
+                              </button>
+                              <button
+                                onClick={() => handleMemberAction(pending.id, 'deny')}
+                                disabled={memberActionLoading === pending.id}
+                                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                              >
+                                {memberActionLoading === pending.id ? (
+                                  <Loader2 size={12} className="animate-spin" />
+                                ) : (
+                                  <XCircle size={12} />
+                                )}
+                                Từ chối
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-base font-semibold text-gray-800">{group.membersCount} thành viên</h3>
                     {isAdmin && (
@@ -670,14 +829,98 @@ export default function GroupDetailPage() {
                 </div>
               )}
 
-              {/* Docs Tab (placeholder) */}
-              {activeTab === 'docs' && (
-                <div className="py-16 text-center bg-white rounded-2xl border border-gray-100">
-                  <FileText size={48} className="mx-auto mb-4 text-gray-300" />
-                  <p className="text-gray-500 font-medium">Tài liệu nhóm</p>
-                  <p className="mt-1 text-sm text-gray-400">Chức năng đang được phát triển</p>
-                </div>
-              )}
+              {/* Docs Tab */}
+              {activeTab === 'docs' && (() => {
+                const canAccessDocs = currentUserIsVip || currentUserRole === 'Mentor' || currentUserRole === 'Admin' || currentUserRole === 'Staff';
+
+                if (!canAccessDocs) {
+                  return (
+                    <div className="py-16 text-center bg-white rounded-2xl border border-gray-100">
+                      <LockIcon size={48} className="mx-auto mb-4 text-amber-400" />
+                      <p className="text-gray-700 font-semibold text-lg">Nâng cấp để xem Tài liệu</p>
+                      <p className="mt-2 text-sm text-gray-500 max-w-md mx-auto">
+                        Chỉ thành viên <span className="font-semibold text-amber-600">VIP</span> hoặc <span className="font-semibold text-slate-700">Mentor</span> mới có quyền truy cập kho tài liệu nhóm.
+                        Bạn vẫn có thể xem tài liệu đính kèm trực tiếp trên các bài đăng.
+                      </p>
+                      <Link
+                        href="/upgrade"
+                        className="inline-flex items-center gap-2 mt-4 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl shadow-lg shadow-amber-100 hover:shadow-xl hover:-translate-y-0.5 transition-all"
+                      >
+                        <Sparkles size={16} />
+                        Nâng cấp VIP
+                      </Link>
+                    </div>
+                  );
+                }
+
+                // Collect all attachments from posts in this group
+                const allDocs = groupPosts
+                  .filter((p) => p.attachments && p.attachments.length > 0)
+                  .flatMap((p) =>
+                    (p.attachments || []).map((att) => ({
+                      ...att,
+                      postId: p.id,
+                      postTitle: p.title || 'Bài viết không tiêu đề',
+                      authorName: p.authorName,
+                      createdAt: p.createdAt,
+                    }))
+                  );
+
+                if (allDocs.length === 0) {
+                  return (
+                    <div className="py-16 text-center bg-white rounded-2xl border border-gray-100">
+                      <FileText size={48} className="mx-auto mb-4 text-gray-300" />
+                      <p className="text-gray-500 font-medium">Chưa có tài liệu nào</p>
+                      <p className="mt-1 text-sm text-gray-400">
+                        Tài liệu đính kèm trong bài viết sẽ hiển thị tại đây
+                      </p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-gray-600">
+                        {allDocs.length} tài liệu
+                      </p>
+                    </div>
+                    {allDocs.map((doc, i) => (
+                      <div
+                        key={`${doc.postId}-${i}`}
+                        className="flex items-center gap-3 p-4 bg-white rounded-xl border border-gray-100 hover:shadow-md transition-all"
+                      >
+                        <div className={`flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0 ${
+                          ['jpg', 'jpeg', 'png'].includes(doc.type) ? 'bg-emerald-100' : doc.type === 'pdf' ? 'bg-red-100' : 'bg-blue-100'
+                        }`}>
+                          {['jpg', 'jpeg', 'png'].includes(doc.type) ? (
+                            <FileImage size={20} className="text-emerald-600" />
+                          ) : doc.type === 'pdf' ? (
+                            <FileText size={20} className="text-red-600" />
+                          ) : (
+                            <FileText size={20} className="text-blue-600" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-800 truncate">{doc.name}</p>
+                          <p className="text-xs text-gray-400">
+                            {doc.type.toUpperCase()} · {doc.authorName} · {timeAgo(doc.createdAt)}
+                          </p>
+                        </div>
+                        <a
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-slate-700 rounded-lg hover:bg-slate-800 transition-colors flex-shrink-0"
+                        >
+                          <Download size={14} />
+                          Tải xuống
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
 
               {/* Events Tab (placeholder) */}
               {activeTab === 'events' && (

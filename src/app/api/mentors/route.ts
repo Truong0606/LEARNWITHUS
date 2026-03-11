@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
 
     // Lọc isActive nếu dùng fallback (hỗ trợ cả boolean và string)
     profiles = profiles.filter((p) => {
-      const active = (p as Record<string, unknown>).isActive;
+      const active = (p as unknown as Record<string, unknown>).isActive;
       return active === true || active === 'true';
     });
 

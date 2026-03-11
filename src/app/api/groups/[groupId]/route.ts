@@ -45,21 +45,30 @@ export async function GET(
       }
     }
 
-    // Get all members of this group
+    // Get all active members of this group
     const membersSnapshot = await adminDb
       .collection(COLLECTIONS.groupMembers)
       .where('groupId', '==', groupId)
       .where('status', '==', 'active')
       .get();
 
-    // Get user info for each member
-    const memberUserIds = membersSnapshot.docs.map(doc => doc.data().userId);
-    const members: GroupMemberInfo[] = [];
+    // Also fetch pending members (for private groups, visible to admin)
+    const pendingSnapshot = group.isPrivate
+      ? await adminDb
+          .collection(COLLECTIONS.groupMembers)
+          .where('groupId', '==', groupId)
+          .where('status', '==', 'pending')
+          .get()
+      : null;
 
-    if (memberUserIds.length > 0) {
-      // Fetch user details in batches of 10 (Firestore 'in' limit)
-      for (let i = 0; i < memberUserIds.length; i += 10) {
-        const batch = memberUserIds.slice(i, i + 10);
+    // Helper to build member info from snapshot docs
+    async function buildMemberInfoList(docs: FirebaseFirestore.QueryDocumentSnapshot[]): Promise<GroupMemberInfo[]> {
+      const userIds = docs.map(doc => doc.data().userId);
+      const result: GroupMemberInfo[] = [];
+      if (userIds.length === 0) return result;
+
+      for (let i = 0; i < userIds.length; i += 10) {
+        const batch = userIds.slice(i, i + 10);
         const usersSnapshot = await adminDb
           .collection(COLLECTIONS.users)
           .where('id', 'in', batch)
@@ -72,7 +81,7 @@ export async function GET(
           usersMap[uid] = { ...user, id: uid };
         });
 
-        membersSnapshot.docs
+        docs
           .filter(doc => batch.includes(doc.data().userId))
           .forEach(doc => {
             const memberData = doc.data();
@@ -83,7 +92,7 @@ export async function GET(
                 ? (nameParts[nameParts.length - 2][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
                 : user.fullName.slice(0, 2).toUpperCase();
 
-              members.push({
+              result.push({
                 id: memberData.id,
                 userId: memberData.userId,
                 name: user.fullName,
@@ -96,7 +105,11 @@ export async function GET(
             }
           });
       }
+      return result;
     }
+
+    const members = await buildMemberInfoList(membersSnapshot.docs);
+    const pendingMembers = pendingSnapshot ? await buildMemberInfoList(pendingSnapshot.docs) : [];
 
     // Sort: admin first, then moderator, then member
     const roleOrder = { admin: 0, moderator: 1, member: 2 };
@@ -130,6 +143,10 @@ export async function GET(
       userMembershipStatus,
       userMemberRole,
       members,
+      // Only include pending members for group admins
+      ...(userMemberRole === 'admin' && pendingMembers.length > 0
+        ? { pendingMembers }
+        : {}),
     };
 
     return NextResponse.json<ApiResponse<StudyGroupDetail>>({

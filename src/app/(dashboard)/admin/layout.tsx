@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/dashboard';
-import { BarChart3, Users, BookOpen, MessageSquare, GraduationCap, DollarSign, CalendarCheck } from 'lucide-react';
+import { BarChart3, Users, BookOpen, MessageSquare, GraduationCap, DollarSign, CalendarCheck, UserCheck } from 'lucide-react';
 
 const adminSidebarItems = [
   {
@@ -27,9 +27,9 @@ const adminSidebarItems = [
     href: '/admin/posts',
   },
   {
-    icon: GraduationCap,
-    heading: 'Yêu cầu Mentor',
-    href: '/admin/mentor-requests',
+    icon: UserCheck,
+    heading: 'Quản lý Mentor',
+    href: '/admin/mentors',
   },
   {
     icon: CalendarCheck,

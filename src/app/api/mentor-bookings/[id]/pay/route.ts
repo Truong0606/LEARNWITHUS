@@ -5,7 +5,7 @@ import { adminDb, COLLECTIONS } from '@/lib/firebase/admin';
 import { verifyToken } from '@/lib/utils';
 import { createDocument } from '@/lib/firebase/firestore';
 import { createPaymentLink, generateOrderCode, getPaymentInfo, PAYOS_CONFIG } from '@/lib/payos';
-import { ApiResponse, PaymentStatus, MentorBooking, User } from '@/types';
+import { ApiResponse, PaymentStatus, MentorBooking, User, VIP_PLANS, VipPlanId } from '@/types';
 import { getVipStatusFromUser, currentMonthKey } from '@/lib/vip';
 import { FieldValue } from 'firebase-admin/firestore';
 
@@ -144,19 +144,24 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const buyerName = user?.fullName || booking.userName;
     const buyerEmail = user?.email;
 
-    // Tier 2: VIP free mentor sessions (2 per month)
-    const { isVip } = user ? getVipStatusFromUser(user) : { isVip: false };
+    // Tier 2: VIP free mentor sessions (based on plan)
+    const { isVip, vipPlan } = user ? getVipStatusFromUser(user) : { isVip: false, vipPlan: null };
     if (isVip) {
       const monthKey = currentMonthKey();
       const usedThisMonth =
         user?.vipFreeSessionsMonthKey === monthKey ? (user?.vipFreeSessionsUsed ?? 0) : 0;
 
-      if (usedThisMonth < 2) {
+      // Get free session limit from the user's plan
+      const planDetails = vipPlan ? VIP_PLANS[vipPlan as VipPlanId] : null;
+      const freeSessionLimit = planDetails?.freeSessionsPerMonth ?? 2;
+
+      if (usedThisMonth < freeSessionLimit) {
         // Use a free session: mark booking paid immediately, no PayOS needed
         const newUsed = usedThisMonth + 1;
         await Promise.all([
           adminDb.collection(COLLECTIONS.mentorBookings).doc(id).update({
             status: 'paid',
+            isFreeVipSession: true,
             updatedAt: FieldValue.serverTimestamp(),
           }),
           adminDb.collection(COLLECTIONS.users).doc(payload.userId).update({
@@ -167,8 +172,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
         ]);
         return NextResponse.json<ApiResponse<{ isFreeSession: true; freeSessionsLeft: number }>>(
           {
-            data: { isFreeSession: true, freeSessionsLeft: 2 - newUsed },
-            message: `Đã sử dụng buổi miễn phí VIP (${newUsed}/2 tháng này). Đặt lịch thành công!`,
+            data: { isFreeSession: true, freeSessionsLeft: freeSessionLimit - newUsed },
+            message: `Đã sử dụng buổi miễn phí VIP (${newUsed}/${freeSessionLimit} tháng này). Đặt lịch thành công!`,
             statusCode: 200,
           },
           { status: 200 }
@@ -176,10 +181,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
       }
     }
 
-    // Tier 1: VIP gets 10% discount (when free sessions are exhausted)
+    // Tier 1: VIP gets discount when free sessions are exhausted
     let finalAmount = booking.amount;
     if (isVip) {
-      finalAmount = Math.round(booking.amount * 0.9);
+      const planDetails = vipPlan ? VIP_PLANS[vipPlan as VipPlanId] : null;
+      const discountPercent = planDetails?.discountPercent ?? 10;
+      finalAmount = Math.round(booking.amount * (1 - discountPercent / 100));
     }
 
     if (!finalAmount || finalAmount <= 0) {

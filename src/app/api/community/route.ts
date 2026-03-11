@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { title, body: postBody, groupId, tags, anonymous, images } = body;
+    const { title, body: postBody, groupId, tags, anonymous, images, attachments } = body;
 
     if (!postBody?.trim() && !title?.trim() && (!images || images.length === 0)) {
       return NextResponse.json<ApiResponse<null>>(
@@ -168,6 +168,19 @@ export async function POST(request: NextRequest) {
     const now = FieldValue.serverTimestamp();
     const postId = generateId();
 
+    // Sanitize attachments (max 5 per post)
+    const attachmentList = Array.isArray(attachments)
+      ? attachments
+          .filter((a: { url?: string; name?: string; type?: string; size?: number }) => a && typeof a.url === 'string' && typeof a.name === 'string')
+          .slice(0, 5)
+          .map((a: { url: string; name: string; type: string; size: number }) => ({
+            url: a.url,
+            name: a.name,
+            type: a.type || 'unknown',
+            size: a.size || 0,
+          }))
+      : [];
+
     const postData: Record<string, unknown> = {
       id: postId,
       authorId: payload.userId,
@@ -182,6 +195,7 @@ export async function POST(request: NextRequest) {
       body: postBody?.trim() || '',
       tags: tags || [],
       images: imageList,
+      attachments: attachmentList,
       likesCount: 0,
       commentsCount: 0,
       sharesCount: 0,

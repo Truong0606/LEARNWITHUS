@@ -218,16 +218,36 @@ export interface VipPlan {
   name: string;
   price: number;
   durationDays: number;
+  freeSessionsPerMonth: number; // Number of free mentor sessions per month
+  discountPercent: number;       // % discount on paid sessions
 }
 
 export const VIP_PLANS: Record<VipPlanId, VipPlan> = {
-  monthly:   { id: 'monthly',   name: 'Hàng tháng', price: 5000,  durationDays: 30  },
-  quarterly: { id: 'quarterly', name: '3 tháng',    price: 249000, durationDays: 90  },
-  yearly:    { id: 'yearly',    name: '1 năm',       price: 799000, durationDays: 365 },
+  monthly:   { id: 'monthly',   name: 'Hàng tháng', price: 99000,  durationDays: 30,  freeSessionsPerMonth: 2, discountPercent: 10 },
+  quarterly: { id: 'quarterly', name: '3 tháng',    price: 249000, durationDays: 90,  freeSessionsPerMonth: 2, discountPercent: 15 },
+  yearly:    { id: 'yearly',    name: '1 năm',       price: 799000, durationDays: 365, freeSessionsPerMonth: 3, discountPercent: 20 },
 };
 
 // Revenue source types for admin revenue dashboard
 export type RevenueSourceType = 'vip_upgrade' | 'mentor_upgrade' | 'mentor_session' | 'mentor_consultation' | 'test_booking';
+
+// Mentor Earning (track per-booking payouts)
+export interface MentorEarning {
+  bookingId: string;
+  mentorId: string;
+  userId: string;
+  userName?: string;
+  topic: string;
+  type: MentorBookingType;
+  amount: number;           // Student paid
+  mentorAmount: number;     // Mentor receives (80%)
+  platformFee: number;      // Platform keeps (20%)
+  isFreeVipSession: boolean;
+  scheduledAt: string;
+  completedAt?: string;
+  mentorPaid: boolean;
+  mentorPaidAt?: string;
+}
 
 // Payment
 export type PaymentFor = 'test_booking' | 'mentor_booking' | 'vip_upgrade';
@@ -355,6 +375,7 @@ export interface StudyGroupWithMembership extends StudyGroup {
 // Study Group Detail (with members list)
 export interface StudyGroupDetail extends StudyGroupWithMembership {
   members: GroupMemberInfo[];
+  pendingMembers?: GroupMemberInfo[];
 }
 
 export interface GroupMemberInfo {
@@ -374,6 +395,13 @@ export interface GroupMemberInfo {
 
 export type PostVisibility = 'public' | 'group';
 
+export interface PostAttachment {
+  url: string;
+  name: string;
+  type: string; // 'pdf' | 'docx' | 'jpg' | 'png'
+  size: number; // bytes
+}
+
 export interface CommunityPost extends BaseEntity {
   authorId: string;
   authorName: string;
@@ -387,6 +415,7 @@ export interface CommunityPost extends BaseEntity {
   body: string;
   tags: string[];
   images: string[];
+  attachments?: PostAttachment[]; // document attachments (PDF, DOCX, JPG, PNG)
   likesCount: number;
   commentsCount: number;
   sharesCount: number;
@@ -486,9 +515,14 @@ export interface MentorBooking extends BaseEntity {
   cancelledAt?: Date;
   cancelledBy?: string;
   cancelReason?: string;
+  canRefund?: boolean;
   mentorPaid?: boolean;
   mentorPaidAt?: Date;
   completedAt?: Date;
+  // Online session link (set by mentor after confirmation)
+  meetingLink?: string;
+  // VIP free session flag
+  isFreeVipSession?: boolean;
 }
 
 // ============================================
@@ -552,6 +586,8 @@ export interface UserProfileResponse {
   role: string;
   isActive: boolean;
   isMentor?: boolean;
+  vipPlan?: string | null;
+  vipExpiresAt?: string | null;
   createdAt: Date;
 }
 

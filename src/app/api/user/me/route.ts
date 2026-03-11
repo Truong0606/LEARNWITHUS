@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, COLLECTIONS } from '@/lib/firebase/admin';
 import { verifyToken, isValidPhone } from '@/lib/utils';
 import { User, UserProfileResponse, UpdateProfileRequest, ApiResponse, UserRole } from '@/types';
-import { FieldValue } from 'firebase-admin/firestore';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 
 // Role names mapping - role 1 = Admin (full admin access)
 const roleNames: Record<UserRole, string> = {
@@ -65,6 +65,15 @@ export async function GET(request: NextRequest) {
     const isMentor = !mentorProfileSnap.empty || roleNames[user.role] === 'Mentor';
 
     // Don't expose passwordHash
+    // Compute VIP fields
+    let vipExpiresAtStr: string | null = null;
+    if (user.vipExpiresAt) {
+      const d = user.vipExpiresAt instanceof Timestamp
+        ? (user.vipExpiresAt as unknown as Timestamp).toDate()
+        : new Date(user.vipExpiresAt as unknown as string);
+      vipExpiresAtStr = d.toISOString();
+    }
+
     const profile: UserProfileResponse = {
       id: user.id,
       fullName: user.fullName,
@@ -74,6 +83,8 @@ export async function GET(request: NextRequest) {
       role: roleNames[user.role] || 'Client',
       isActive: user.isActive,
       isMentor,
+      vipPlan: user.vipPlan ?? null,
+      vipExpiresAt: vipExpiresAtStr,
       createdAt: user.createdAt instanceof Date 
         ? user.createdAt 
         : (user.createdAt as FirebaseFirestore.Timestamp).toDate()

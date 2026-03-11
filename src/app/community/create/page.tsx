@@ -14,6 +14,9 @@ import {
   Users,
   EyeOff,
   Eye,
+  FileText,
+  Paperclip,
+  FileImage,
 } from 'lucide-react';
 
 const SUGGESTED_TAGS = [
@@ -25,6 +28,7 @@ function CreatePostContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const docInputRef = useRef<HTMLInputElement>(null);
 
   const groupIdFromUrl = searchParams.get('groupId');
   const groupId = groupIdFromUrl || null;
@@ -35,6 +39,7 @@ function CreatePostContent() {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
+  const [documents, setDocuments] = useState<{ file: File; name: string; type: string; size: number }[]>([]);
   const [anonymous, setAnonymous] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [groupName, setGroupName] = useState<string | null>(null);
@@ -50,7 +55,7 @@ function CreatePostContent() {
     }
   }, [groupId]);
 
-  const canSubmit = title.trim() || body.trim() || images.length > 0;
+  const canSubmit = title.trim() || body.trim() || images.length > 0 || documents.length > 0;
   const charCount = body.length;
 
   const addTag = (tag: string) => {
@@ -106,6 +111,53 @@ function CreatePostContent() {
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const ALLOWED_DOC_TYPES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword', 'image/jpeg', 'image/png'];
+  const ALLOWED_DOC_EXTS = ['pdf', 'docx', 'doc', 'jpg', 'jpeg', 'png'];
+
+  const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newDocs: { file: File; name: string; type: string; size: number }[] = [];
+    const errorMsgs: string[] = [];
+
+    Array.from(files).forEach((file) => {
+      const ext = file.name.split('.').pop()?.toLowerCase() || '';
+      if (!ALLOWED_DOC_TYPES.includes(file.type) && !ALLOWED_DOC_EXTS.includes(ext)) {
+        errorMsgs.push(`"${file.name}" không hỗ trợ (chỉ PDF, DOCX, JPG, PNG)`);
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        errorMsgs.push(`"${file.name}" quá lớn (tối đa 10MB)`);
+        return;
+      }
+      if (documents.length + newDocs.length >= 5) {
+        errorMsgs.push('Tối đa 5 tài liệu');
+        return;
+      }
+      newDocs.push({ file, name: file.name, type: ext, size: file.size });
+    });
+
+    if (errorMsgs.length > 0) {
+      setErrors({ documents: errorMsgs.join('. ') });
+    } else {
+      setErrors((prev) => { const { documents: _, ...rest } = prev; return rest; });
+    }
+
+    setDocuments((prev) => [...prev, ...newDocs].slice(0, 5));
+    e.target.value = '';
+  };
+
+  const removeDocument = (index: number) => {
+    setDocuments((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   const handleSubmit = async () => {
     if (!canSubmit) return;
 
@@ -142,6 +194,31 @@ function CreatePostContent() {
         }
       }
 
+      // Upload documents
+      const uploadedAttachments: { url: string; name: string; type: string; size: number }[] = [];
+
+      if (documents.length > 0) {
+        for (const doc of documents) {
+          const formData = new FormData();
+          formData.append('file', doc.file);
+
+          const uploadRes = await fetch('/api/upload/file', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` },
+            body: formData,
+          });
+
+          const uploadData = await uploadRes.json();
+          if (uploadRes.ok && uploadData.data) {
+            uploadedAttachments.push(uploadData.data);
+          } else {
+            setErrors({ submit: uploadData.message || 'Lỗi tải tài liệu lên' });
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
       const res = await fetch('/api/community', {
         method: 'POST',
         headers: {
@@ -155,6 +232,7 @@ function CreatePostContent() {
           tags,
           anonymous,
           images: imageUrls,
+          attachments: uploadedAttachments,
         }),
       });
 
@@ -258,7 +336,19 @@ function CreatePostContent() {
           {/* Image Upload */}
           <div>
             <div className="flex items-center gap-3 mb-2">
-
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={images.length >= 3}
+                className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all ${
+                  images.length >= 3
+                    ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                    : 'text-slate-600 bg-slate-50 hover:bg-slate-100'
+                }`}
+              >
+                <ImagePlus size={16} />
+                Thêm ảnh ({images.length}/3)
+              </button>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -287,6 +377,66 @@ function CreatePostContent() {
                       aria-label="Xóa ảnh"
                     >
                       <X size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Document Upload */}
+          <div>
+            <label className="flex items-center gap-2 mb-2 text-sm font-semibold text-gray-700">
+              <Paperclip size={16} />
+              Tài liệu đính kèm
+            </label>
+            <input
+              ref={docInputRef}
+              type="file"
+              accept=".pdf,.docx,.doc,.jpg,.jpeg,.png"
+              multiple
+              onChange={handleDocUpload}
+              className="hidden"
+            />
+            <button
+              type="button"
+              onClick={() => docInputRef.current?.click()}
+              disabled={documents.length >= 5}
+              className={`flex items-center gap-2 w-full px-4 py-3 text-sm font-medium border-2 border-dashed rounded-xl transition-all ${
+                documents.length >= 5
+                  ? 'text-gray-400 border-gray-200 cursor-not-allowed'
+                  : 'text-slate-600 border-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              <FileText size={18} />
+              Tải lên PDF, DOCX, JPG, PNG (tối đa 5 tệp, 10MB/tệp)
+            </button>
+            {errors.documents && (
+              <p className="mt-1 text-sm text-red-500">{errors.documents}</p>
+            )}
+            {documents.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {documents.map((doc, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 px-4 py-2.5 bg-gray-50 rounded-xl border border-gray-200"
+                  >
+                    {['jpg', 'jpeg', 'png'].includes(doc.type) ? (
+                      <FileImage size={18} className="text-emerald-500 flex-shrink-0" />
+                    ) : (
+                      <FileText size={18} className="text-blue-500 flex-shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-700 truncate">{doc.name}</p>
+                      <p className="text-xs text-gray-400">{doc.type.toUpperCase()} · {formatFileSize(doc.size)}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeDocument(index)}
+                      className="p-1 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
+                      aria-label="Xóa tệp"
+                    >
+                      <X size={14} />
                     </button>
                   </div>
                 ))}

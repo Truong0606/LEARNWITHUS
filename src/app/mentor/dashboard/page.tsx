@@ -21,6 +21,10 @@ import {
   Edit3,
   Save,
   X,
+  TrendingUp,
+  Link as LinkIcon,
+  BarChart2,
+  Award,
 } from 'lucide-react';
 import type { MentorProfile } from '@/types';
 
@@ -39,6 +43,34 @@ interface BookingDto {
   reviewId?: string;
   createdAt: string;
   mentorPaid?: boolean;
+  meetingLink?: string;
+  isFreeVipSession?: boolean;
+}
+
+interface MonthlyDataPoint {
+  month: string;
+  label: string;
+  sessions: number;
+  earnings: number;
+}
+
+interface StatsData {
+  overview: {
+    totalSessions: number;
+    completedSessions: number;
+    cancelledSessions: number;
+    pendingSessions: number;
+    uniqueMentees: number;
+    avgRating: number;
+    reviewCount: number;
+  };
+  financials: {
+    totalEarnings: number;
+    paidEarnings: number;
+    pendingEarnings: number;
+    sessionRate: number;
+  };
+  monthlyData: MonthlyDataPoint[];
 }
 
 type Tab = 'overview' | 'schedule' | 'bookings' | 'profile';
@@ -77,6 +109,14 @@ export default function MentorDashboardPage() {
     d.setHours(0, 0, 0, 0);
     return d;
   });
+  // Meeting link state
+  const [meetingLinkBookingId, setMeetingLinkBookingId] = useState<string | null>(null);
+  const [meetingLinkValue, setMeetingLinkValue] = useState('');
+  const [meetingLinkLoading, setMeetingLinkLoading] = useState(false);
+  const [meetingLinkMsg, setMeetingLinkMsg] = useState('');
+  // Stats state
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
 
   const getToken = () => typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -151,6 +191,24 @@ export default function MentorDashboardPage() {
     if (authorized) { fetchBookings(); fetchProfile(); }
   }, [authorized, fetchBookings, fetchProfile]);
 
+  const fetchStats = useCallback(async () => {
+    const token = getToken();
+    if (!token) return;
+    setStatsLoading(true);
+    try {
+      const res = await fetch('/api/mentor/stats', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.data) setStats(data.data as StatsData);
+    } catch (err) { console.error(err); }
+    finally { setStatsLoading(false); }
+  }, []);
+
+  useEffect(() => {
+    if (authorized && !stats) fetchStats();
+  }, [authorized, stats, fetchStats]);
+
   const handleAction = async (bookingId: string, status: 'confirmed' | 'completed' | 'cancelled') => {
     const token = getToken();
     if (!token) return;
@@ -204,13 +262,37 @@ export default function MentorDashboardPage() {
     finally { setProfileSaving(false); }
   };
 
+  const handleSetMeetingLink = async () => {
+    if (!meetingLinkBookingId) return;
+    const token = getToken();
+    if (!token) return;
+    setMeetingLinkLoading(true);
+    setMeetingLinkMsg('');
+    try {
+      const res = await fetch(`/api/mentor-bookings/${meetingLinkBookingId}/meeting-link`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ meetingLink: meetingLinkValue }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMeetingLinkMsg('Đã cập nhật link họp thành công!');
+        fetchBookings();
+        setTimeout(() => { setMeetingLinkBookingId(null); setMeetingLinkMsg(''); }, 1500);
+      } else {
+        setMeetingLinkMsg(data.message || 'Có lỗi xảy ra');
+      }
+    } catch { setMeetingLinkMsg('Có lỗi xảy ra'); }
+    finally { setMeetingLinkLoading(false); }
+  };
+
   // Computed stats - distinguish received vs awaiting admin payment
   const completedBookings = bookings.filter((b) => b.status === 'completed');
   const receivedFromAdmin = completedBookings
-    .filter((b) => b.mentorPaid)
+    .filter((b) => b.mentorPaid && !b.isFreeVipSession)
     .reduce((sum, b) => sum + Math.round((b.amount || 0) * 0.8), 0);
   const awaitingAdminPayment = completedBookings
-    .filter((b) => !b.mentorPaid)
+    .filter((b) => !b.mentorPaid && !b.isFreeVipSession)
     .reduce((sum, b) => sum + Math.round((b.amount || 0) * 0.8), 0);
   const mentorEarningsTotal = receivedFromAdmin + awaitingAdminPayment;
   const pendingBookings = bookings.filter((b) => ['pending', 'paid', 'confirmed'].includes(b.status));
@@ -390,18 +472,73 @@ export default function MentorDashboardPage() {
               </div>
             </div>
 
-            {/* Payment Info */}
-            <div className="mt-8 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-              <h3 className="font-semibold text-gray-800">Thông tin thanh toán</h3>
-              <p className="mt-2 text-sm text-gray-600">
-                Thu nhập được chuyển vào tài khoản ngân hàng đã đăng ký vào cuối mỗi tháng.
-                Platform thu phí dịch vụ 20%, Mentor nhận 80% giá mỗi buổi.
-              </p>
-              <div className="mt-4 flex items-center gap-2 text-sm text-slate-600">
-                <Clock size={16} />
-                Liên hệ admin nếu cần hỗ trợ
+            {/* Thống kê chi tiết */}
+            {stats && (
+              <>
+                <div className="mt-8 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                  <div className="flex items-center gap-2 mb-4">
+                    <BarChart2 size={18} className="text-slate-600" />
+                    <h3 className="font-semibold text-gray-800">Thu nhập 6 tháng gần nhất</h3>
+                  </div>
+                  <div className="flex items-end gap-3 h-40">
+                    {stats.monthlyData.map((d) => {
+                      const maxEarnings = Math.max(...stats.monthlyData.map((m) => m.earnings), 1);
+                      const barH = Math.max((d.earnings / maxEarnings) * 100, 4);
+                      return (
+                        <div key={d.month} className="flex flex-1 flex-col items-center gap-1">
+                          <p className="text-xs font-medium text-emerald-600 truncate w-full text-center">
+                            {d.earnings > 0 ? `${Math.round(d.earnings / 1000)}k` : ''}
+                          </p>
+                          <div
+                            className="w-full rounded-t-lg bg-emerald-400 transition-all"
+                            style={{ height: `${barH}%` }}
+                            title={`${d.label}: ${formatPrice(d.earnings)} (${d.sessions} buổi)`}
+                          />
+                          <p className="text-[10px] text-gray-500 truncate w-full text-center">{d.label}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp size={16} className="text-violet-600" />
+                      <h3 className="text-sm font-semibold text-gray-700">Tỷ lệ hoàn thành</h3>
+                    </div>
+                    <p className="text-xl font-bold text-gray-800">
+                      {stats.overview.totalSessions > 0
+                        ? Math.round((stats.overview.completedSessions / stats.overview.totalSessions) * 100)
+                        : 0}%
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {stats.overview.completedSessions}/{stats.overview.totalSessions} đơn
+                    </p>
+                  </div>
+                  <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users size={16} className="text-cyan-600" />
+                      <h3 className="text-sm font-semibold text-gray-700">Học viên độc lập</h3>
+                    </div>
+                    <p className="text-xl font-bold text-gray-800">{stats.overview.uniqueMentees}</p>
+                    <p className="text-xs text-gray-500 mt-1">Số lượng mentee khác nhau</p>
+                  </div>
+                  <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Award size={16} className="text-rose-600" />
+                      <h3 className="text-sm font-semibold text-gray-700">Phí nền tảng</h3>
+                    </div>
+                    <p className="text-xl font-bold text-gray-800">20%</p>
+                    <p className="text-xs text-gray-500 mt-1">Mentor nhận 80%/buổi</p>
+                  </div>
+                </div>
+              </>
+            )}
+            {statsLoading && (
+              <div className="mt-8 flex justify-center py-8">
+                <Loader2 size={24} className="animate-spin text-slate-400" />
               </div>
-            </div>
+            )}
           </>
         )}
 
@@ -442,9 +579,28 @@ export default function MentorDashboardPage() {
                             {b.type === 'session' ? 'Học cùng' : 'Tư vấn'}
                           </span>
                         </td>
-                        <td className="max-w-xs truncate px-6 py-4 text-sm text-gray-600">{b.topic || '—'}</td>
+                        <td className="max-w-xs truncate px-6 py-4 text-sm text-gray-600">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="truncate">{b.topic || '—'}</span>
+                            {b.meetingLink && (
+                              <a href={b.meetingLink} target="_blank" rel="noopener noreferrer"
+                                className="flex items-center gap-1 text-xs text-blue-500 hover:underline truncate">
+                                <LinkIcon size={11} /> Link họp
+                              </a>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-6 py-4 text-sm text-gray-600">{formatDate(b.scheduledAt)}</td>
-                        <td className="px-6 py-4 text-sm font-semibold text-emerald-600">{formatPrice(b.amount)}</td>
+                        <td className="px-6 py-4 text-sm font-semibold text-emerald-600">
+                          <div className="flex flex-col gap-0.5">
+                            <span>{formatPrice(b.amount)}</span>
+                            {b.isFreeVipSession && (
+                              <span className="inline-flex items-center gap-0.5 rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700">
+                                <Award size={10} /> VIP Free
+                              </span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-6 py-4">
                           <div className="flex flex-col gap-1">
                             <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${statusColors[b.status] || ''}`}>
@@ -472,6 +628,15 @@ export default function MentorDashboardPage() {
                                 title="Xác nhận"
                               >
                                 <CheckCircle size={18} />
+                              </button>
+                            )}
+                            {(b.status === 'confirmed' || b.status === 'paid') && (
+                              <button
+                                onClick={() => { setMeetingLinkBookingId(b.id); setMeetingLinkValue(b.meetingLink || ''); }}
+                                className={`rounded-lg p-1.5 hover:bg-blue-50 ${b.meetingLink ? 'text-blue-600' : 'text-gray-400'}`}
+                                title={b.meetingLink ? 'Cập nhật link họp' : 'Thêm link họp'}
+                              >
+                                <LinkIcon size={18} />
                               </button>
                             )}
                             {(b.status === 'confirmed' || b.status === 'paid') && (
@@ -711,6 +876,53 @@ export default function MentorDashboardPage() {
           </div>
         )}
       </main>
+
+      {/* Meeting Link Modal */}
+      {meetingLinkBookingId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+                <LinkIcon size={18} className="text-slate-600" /> Đặt link họp
+              </h3>
+              <button onClick={() => { setMeetingLinkBookingId(null); setMeetingLinkMsg(''); }} className="text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">
+              Nhập link Google Meet / Zoom / Teams để học viên có thể tham gia buổi học.
+            </p>
+            <input
+              type="url"
+              value={meetingLinkValue}
+              onChange={(e) => setMeetingLinkValue(e.target.value)}
+              placeholder="https://meet.google.com/xxx-xxxx-xxx"
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500 mb-3"
+            />
+            {meetingLinkMsg && (
+              <p className={`text-sm mb-3 ${meetingLinkMsg.includes('thành công') ? 'text-emerald-600' : 'text-red-600'}`}>
+                {meetingLinkMsg}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={handleSetMeetingLink}
+                disabled={meetingLinkLoading || !meetingLinkValue.trim()}
+                className="flex-1 rounded-xl bg-slate-800 px-4 py-3 text-sm font-medium text-white hover:bg-slate-700 disabled:opacity-50"
+              >
+                {meetingLinkLoading ? 'Đang lưu...' : 'Lưu link họp'}
+              </button>
+              <button
+                onClick={() => { setMeetingLinkBookingId(null); setMeetingLinkMsg(''); }}
+                className="rounded-xl bg-gray-100 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-200"
+              >
+                Hủy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );

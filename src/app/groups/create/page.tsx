@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Header, Footer } from '@/components/shared';
@@ -15,6 +15,8 @@ import {
   Send,
   Users,
   X,
+  Crown,
+  Sparkles,
 } from 'lucide-react';
 
 const SUBJECT_SUGGESTIONS = [
@@ -32,6 +34,44 @@ export default function CreateGroupPage() {
   const [isPrivate, setIsPrivate] = useState(false);
   const [inviteEmails, setInviteEmails] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Role & VIP state
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [isVip, setIsVip] = useState(false);
+  const [checkingAccess, setCheckingAccess] = useState(true);
+
+  const isMentorOrAdmin = userRole === 'Mentor' || userRole === 'Admin' || userRole === 'Staff';
+  const canCreateGroup = isVip || isMentorOrAdmin;
+  const canCreatePrivate = isMentorOrAdmin;
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+    setUserRole(role);
+
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
+    // Fetch VIP status from API
+    fetch('/api/user/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.data) {
+          const u = data.data;
+          const now = new Date();
+          const vipActive = u.vipPlan && u.vipExpiresAt && new Date(u.vipExpiresAt) > now;
+          setIsVip(!!vipActive);
+          // Also update role from API if present
+          if (u.role) setUserRole(u.role);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setCheckingAccess(false));
+  }, [router]);
 
   const canSubmit = name.trim().length >= 3;
 
@@ -116,6 +156,42 @@ export default function CreateGroupPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
+
+      {/* Loading access check */}
+      {checkingAccess ? (
+        <main className="flex items-center justify-center py-32">
+          <div className="w-8 h-8 border-2 border-slate-300 border-t-slate-700 rounded-full animate-spin" />
+        </main>
+      ) : !canCreateGroup ? (
+        /* Regular users — upgrade prompt */
+        <main className="px-4 py-16 mx-auto max-w-lg sm:px-6 text-center">
+          <div className="p-8 bg-white rounded-2xl border border-gray-100 shadow-sm space-y-4">
+            <div className="flex items-center justify-center w-16 h-16 mx-auto bg-amber-100 rounded-2xl">
+              <Crown size={32} className="text-amber-600" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-800">Nâng cấp để tạo nhóm</h2>
+            <p className="text-sm text-gray-500 leading-relaxed">
+              Chỉ thành viên <span className="font-semibold text-amber-600">VIP</span> hoặc <span className="font-semibold text-slate-700">Mentor</span> mới có quyền tạo nhóm học.
+              Nâng cấp tài khoản VIP để tạo nhóm công khai và tham gia các tính năng cao cấp.
+            </p>
+            <div className="flex flex-col gap-3 pt-2">
+              <Link
+                href="/upgrade"
+                className="flex items-center justify-center gap-2 w-full px-5 py-3 text-sm font-semibold text-white bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl shadow-lg shadow-amber-100 hover:shadow-xl hover:-translate-y-0.5 transition-all"
+              >
+                <Sparkles size={16} />
+                Nâng cấp VIP
+              </Link>
+              <Link
+                href="/groups"
+                className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                ← Quay lại danh sách nhóm
+              </Link>
+            </div>
+          </div>
+        </main>
+      ) : (
       <main className="px-4 py-6 mx-auto max-w-2xl sm:px-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -238,7 +314,8 @@ export default function CreateGroupPage() {
             <p className="mt-1 text-xs text-gray-400 text-right">{description.length}/200</p>
           </div>
 
-          {/* Privacy Toggle */}
+          {/* Privacy Toggle - Only shown to Mentor/Admin */}
+          {canCreatePrivate ? (
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
             <div className="flex items-center gap-3">
               {isPrivate ? (
@@ -277,6 +354,19 @@ export default function CreateGroupPage() {
               />
             </button>
           </div>
+          ) : (
+          <div className="flex items-center gap-3 p-4 bg-emerald-50 rounded-xl">
+            <div className="flex items-center justify-center w-10 h-10 bg-emerald-100 rounded-xl">
+              <Globe size={20} className="text-emerald-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-700">Nhóm công khai</p>
+              <p className="text-xs text-gray-500">
+                Thành viên VIP chỉ được tạo nhóm công khai. Chỉ Mentor được tạo nhóm riêng tư.
+              </p>
+            </div>
+          </div>
+          )}
 
           {/* Cover Image Upload */}
           <div>
@@ -311,6 +401,7 @@ export default function CreateGroupPage() {
           </div>
         </div>
       </main>
+      )}
       <Footer />
     </div>
   );

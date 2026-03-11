@@ -14,6 +14,9 @@ import {
   ExternalLink,
   CreditCard,
   Loader2,
+  Award,
+  Video,
+  Gift,
 } from 'lucide-react';
 
 interface MentorBookingDto {
@@ -26,6 +29,18 @@ interface MentorBookingDto {
   scheduledAt: string;
   topic: string;
   reviewId?: string;
+  meetingLink?: string;
+  isFreeVipSession?: boolean;
+}
+
+interface VipUsage {
+  isVip: boolean;
+  vipPlan: string | null;
+  freeSessionsPerMonth: number;
+  freeSessionsUsed: number;
+  freeSessionsLeft: number;
+  discountPercent: number;
+  vipExpiresAt: string | null;
 }
 
 export default function CustomerMentorBookingsPage() {
@@ -37,6 +52,7 @@ export default function CustomerMentorBookingsPage() {
   const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' });
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewMsg, setReviewMsg] = useState('');
+  const [vipUsage, setVipUsage] = useState<VipUsage | null>(null);
 
   const getToken = () => typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -57,11 +73,16 @@ export default function CustomerMentorBookingsPage() {
     try {
       const token = getToken();
       if (!token) { window.location.href = '/login'; return; }
-      const res = await fetch('/api/mentor-bookings?role=student', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (data.data?.bookings) setBookings(data.data.bookings);
+      const [bookRes, vipRes] = await Promise.all([
+        fetch('/api/mentor-bookings?role=student', { headers: { Authorization: `Bearer ${token}` } }),
+        fetch('/api/upgrade/benefits', { headers: { Authorization: `Bearer ${token}` } }),
+      ]);
+      const bookData = await bookRes.json();
+      if (bookData.data?.bookings) setBookings(bookData.data.bookings);
+      if (vipRes.ok) {
+        const vipData = await vipRes.json();
+        if (vipData.data?.currentUsage) setVipUsage(vipData.data.currentUsage);
+      }
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   }, []);
@@ -179,6 +200,41 @@ export default function CustomerMentorBookingsPage() {
         </Link>
       </div>
 
+      {/* VIP Usage Banner */}
+      {vipUsage?.isVip && (
+        <div className="mt-4 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 p-4 text-white shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
+                <Award size={20} className="text-white" />
+              </div>
+              <div>
+                <p className="font-semibold capitalize">VIP {vipUsage.vipPlan}</p>
+                <p className="text-sm text-white/80">
+                  {vipUsage.vipExpiresAt
+                    ? `Hết hạn: ${new Date(vipUsage.vipExpiresAt).toLocaleDateString('vi-VN')}`
+                    : 'Đang hoạt động'}
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-6">
+              <div className="text-center">
+                <p className="text-xl font-bold">{vipUsage.freeSessionsLeft}</p>
+                <p className="text-xs text-white/80">Buổi miễn phí còn lại</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xl font-bold">{vipUsage.discountPercent}%</p>
+                <p className="text-xs text-white/80">Giảm giá</p>
+              </div>
+              <div className="text-center">
+                <p className="text-xl font-bold">{vipUsage.freeSessionsUsed}/{vipUsage.freeSessionsPerMonth}</p>
+                <p className="text-xs text-white/80">Đã dùng tháng này</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {loading ? <Loading /> : (
         <div className="mt-6 space-y-4">
           {bookings.length === 0 ? (
@@ -199,7 +255,14 @@ export default function CustomerMentorBookingsPage() {
                     {b.type === 'session' ? <BookOpen size={24} className="text-violet-600" /> : <MessageSquare size={24} className="text-blue-600" />}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-800">{b.topic}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-gray-800">{b.topic}</p>
+                      {b.isFreeVipSession && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-xs font-medium text-violet-700">
+                          <Gift size={10} /> VIP Miễn phí
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-500">
                       Mentor: <span className="font-medium text-gray-700">{b.mentorName || '—'}</span>
                     </p>
@@ -212,13 +275,27 @@ export default function CustomerMentorBookingsPage() {
                       }`}>
                         {b.type === 'session' ? 'Học cùng' : 'Tư vấn'}
                       </span>
+                      {b.meetingLink && ['confirmed', 'paid'].includes(b.status) && (
+                        <a
+                          href={b.meetingLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 rounded-full bg-blue-600 px-3 py-0.5 text-xs font-medium text-white hover:bg-blue-700"
+                        >
+                          <Video size={11} /> Tham gia buổi học
+                        </a>
+                      )}
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <p className="text-lg font-bold text-gray-800">{formatPrice(b.amount)}</p>
+                    <p className="text-lg font-bold text-gray-800">
+                      {b.isFreeVipSession ? (
+                        <span className="text-violet-600">Miễn phí VIP</span>
+                      ) : formatPrice(b.amount)}
+                    </p>
                     <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${statusColors[b.status] || ''}`}>
                       {statusLabels[b.status] || b.status}
                     </span>

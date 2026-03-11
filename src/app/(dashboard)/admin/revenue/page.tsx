@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Calendar,
   FlaskConical,
+  Percent,
 } from 'lucide-react';
 import type { RevenueSourceType } from '@/types';
 
@@ -142,7 +143,7 @@ export default function AdminRevenuePage() {
       ) : data ? (
         <>
           {/* Summary cards */}
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6">
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
               <div className="flex items-center gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100">
@@ -156,6 +157,50 @@ export default function AdminRevenuePage() {
                 </div>
               </div>
             </div>
+
+            {/* Platform fee 20% from mentor sessions */}
+            {(() => {
+              const mentorRevenue = (data.summary.byType['mentor_session'] ?? 0) + (data.summary.byType['mentor_consultation'] ?? 0);
+              const platformFee = Math.round(mentorRevenue * 0.2);
+              const mentorShare = mentorRevenue - platformFee;
+              return (
+                <>
+                  <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-6 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100">
+                        <Percent size={24} className="text-emerald-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Phí nền tảng 20%</p>
+                        <p className="text-xl font-bold text-emerald-700">
+                          {formatPrice(platformFee)}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          Từ {formatPrice(mentorRevenue)} doanh thu mentor
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
+                        <GraduationCap size={24} className="text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Mentor nhận (80%)</p>
+                        <p className="text-xl font-bold text-gray-800">
+                          {formatPrice(mentorShare)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+
+          {/* Revenue by type */}
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {sourceTypes.map((t) => {
               const Icon = ICON_MAP[t];
               const amount = data.summary.byType[t] ?? 0;
@@ -199,6 +244,12 @@ export default function AdminRevenuePage() {
                     Số tiền
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                    Phí NTT (20%)
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
+                    Mentor (80%)
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
                     Mô tả
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
@@ -209,13 +260,16 @@ export default function AdminRevenuePage() {
               <tbody className="divide-y divide-gray-50">
                 {data.items.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
                       Chưa có giao dịch nào trong khoảng thời gian đã chọn
                     </td>
                   </tr>
                 ) : (
                   data.items.map((item) => {
                     const Icon = ICON_MAP[item.sourceType];
+                    const isMentorType = item.sourceType === 'mentor_session' || item.sourceType === 'mentor_consultation';
+                    const platformFee = isMentorType ? Math.round(item.amount * 0.2) : 0;
+                    const mentorShare = isMentorType ? item.amount - platformFee : 0;
                     return (
                       <tr key={item.id} className="hover:bg-gray-50/50">
                         <td className="px-6 py-4">
@@ -231,8 +285,14 @@ export default function AdminRevenuePage() {
                         <td className="px-6 py-4 font-semibold text-emerald-600">
                           {formatPrice(item.amount)}
                         </td>
+                        <td className="px-6 py-4 text-sm font-medium text-emerald-700">
+                          {isMentorType ? formatPrice(platformFee) : <span className="text-gray-400">—</span>}
+                        </td>
                         <td className="px-6 py-4 text-sm text-gray-600">
-                          {item.description || item.metadata?.description || '—'}
+                          {isMentorType ? formatPrice(mentorShare) : <span className="text-gray-400">—</span>}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {item.description || (item.metadata?.description as string) || '—'}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-600">
                           <span className="inline-flex items-center gap-1">

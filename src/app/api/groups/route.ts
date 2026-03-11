@@ -123,35 +123,42 @@ export async function POST(request: NextRequest) {
     }
     const user = userDoc.data() as User;
     const { isVip } = getVipStatusFromUser(user);
+    const isMentorOrAdmin = user.role === UserRole.Mentor || user.role === UserRole.Admin || user.role === UserRole.Staff;
 
-    // Tier 1: Mentor OR VIP can create private groups
-    if (isPrivate && user.role !== UserRole.Mentor && !isVip) {
+    // Regular users (non-VIP, non-Mentor, non-Admin) cannot create groups at all
+    if (!isVip && !isMentorOrAdmin) {
       return NextResponse.json<ApiResponse<null>>(
         {
           data: null,
-          message: 'Chỉ tài khoản Mentor hoặc thành viên VIP mới có thể tạo nhóm học riêng tư',
+          message: 'Nâng cấp VIP để tạo nhóm học. Thành viên thường không có quyền tạo nhóm.',
           statusCode: 403,
         },
         { status: 403 }
       );
     }
 
-    // Tier 2: non-VIP limited to max 2 groups created (as admin)
-    if (!isVip && user.role !== UserRole.Mentor && user.role !== UserRole.Admin) {
-      const createdGroupsSnap = await adminDb
-        .collection(COLLECTIONS.studyGroups)
-        .where('createdBy', '==', payload.userId)
-        .get();
-      if (createdGroupsSnap.size >= 2) {
-        return NextResponse.json<ApiResponse<null>>(
-          {
-            data: null,
-            message: 'Thành viên thường chỉ có thể tạo tối đa 2 nhóm học. Nâng cấp VIP để tạo không giới hạn.',
-            statusCode: 403,
-          },
-          { status: 403 }
-        );
-      }
+    // VIP users can only create public groups
+    if (isVip && !isMentorOrAdmin && isPrivate) {
+      return NextResponse.json<ApiResponse<null>>(
+        {
+          data: null,
+          message: 'Thành viên VIP chỉ có thể tạo nhóm công khai. Chỉ Mentor mới được tạo nhóm riêng tư.',
+          statusCode: 403,
+        },
+        { status: 403 }
+      );
+    }
+
+    // Only Mentor/Admin can create private groups
+    if (isPrivate && !isMentorOrAdmin) {
+      return NextResponse.json<ApiResponse<null>>(
+        {
+          data: null,
+          message: 'Chỉ Mentor mới được tạo nhóm riêng tư.',
+          statusCode: 403,
+        },
+        { status: 403 }
+      );
     }
 
     if (!name || name.trim().length < 3) {
