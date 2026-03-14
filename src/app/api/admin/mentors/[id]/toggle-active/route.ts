@@ -51,8 +51,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       message: newIsActive ? 'Đã kích hoạt Mentor' : 'Đã vô hiệu hóa Mentor',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('PATCH /api/admin/mentors/[id]/toggle-active error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

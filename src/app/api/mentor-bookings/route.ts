@@ -172,8 +172,7 @@ export async function GET(request: NextRequest) {
       message: 'Lấy danh sách đặt lịch thành công',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('GET /api/mentor-bookings error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -278,8 +277,7 @@ export async function POST(request: NextRequest) {
       { data: { id }, message: 'Đặt lịch thành công. Vui lòng thanh toán để xác nhận.', statusCode: 201 },
       { status: 201 }
     );
-  } catch (error) {
-    console.error('POST /api/mentor-bookings error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

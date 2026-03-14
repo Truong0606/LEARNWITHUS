@@ -63,8 +63,7 @@ export async function GET(request: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error) {
-    console.error('GET /api/upgrade error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -214,7 +213,6 @@ export async function POST(request: NextRequest) {
     });
 
     if (payosResponse.code !== '00') {
-      console.error('PayOS error:', payosResponse);
       return NextResponse.json<ApiResponse<null>>(
         { data: null, message: `Lỗi tạo thanh toán: ${payosResponse.desc}`, statusCode: 400 },
         { status: 400 }
@@ -256,8 +254,7 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error) {
-    console.error('POST /api/upgrade error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

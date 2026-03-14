@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { Crown, GraduationCap, LogOut, Menu, User, X, BookOpen, Users, Shield, CalendarDays } from 'lucide-react';
 
@@ -64,7 +65,7 @@ export default function Header() {
         setIsVip(json.data?.isVip === true);
       }
     } catch {
-      // silent fail - VIP status không critical với UX
+      // Bỏ qua nếu lỗi
     }
   }, []);
 
@@ -332,7 +333,7 @@ export default function Header() {
                   <div className="flex items-center gap-3 px-4 py-2">
                     <div className={`relative flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-slate-600 to-slate-800 text-white font-semibold text-xs overflow-hidden ${isVip ? 'ring-2 ring-amber-400 ring-offset-1' : ''}`}>
                       {userInfo.avatarUrl ? (
-                        <img src={userInfo.avatarUrl} alt={userInfo.userName} className="w-full h-full object-cover" />
+                        <Image src={userInfo.avatarUrl} alt={userInfo.userName} width={32} height={32} className="w-full h-full object-cover" />
                       ) : (
                         getInitials(userInfo.userName)
                       )}

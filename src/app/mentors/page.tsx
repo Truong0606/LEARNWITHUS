@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Header, Footer } from '@/components/shared';
 import {
@@ -87,14 +88,13 @@ export default function MentorsPage() {
       setLoading(true);
       try {
         const params = new URLSearchParams();
-        params.set('limit', '500');
+        params.set('limit', '30');
         if (searchQuery) params.set('search', searchQuery);
         if (activeSubject) params.set('subject', activeSubject);
         const res = await fetch(`/api/mentors?${params}`);
         const data = await res.json();
         setMentors(Array.isArray(data.data) ? data.data : []);
       } catch (err) {
-        console.error('Failed to fetch mentors:', err);
       } finally {
         setLoading(false);
       }
@@ -319,9 +319,11 @@ export default function MentorsPage() {
                     >
                       <div className="flex flex-col gap-4 sm:flex-row">
                         {mentor.avatarUrl ? (
-                          <img
+                          <Image
                             src={mentor.avatarUrl}
                             alt={mentor.fullName}
+                            width={80}
+                            height={80}
                             className="h-20 w-20 flex-shrink-0 rounded-2xl object-cover"
                           />
                         ) : (

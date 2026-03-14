@@ -37,8 +37,7 @@ export async function GET(request: NextRequest) {
       message: 'Lấy danh sách khóa học thành công',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('GET /api/mentor-courses error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -148,8 +147,7 @@ export async function POST(request: NextRequest) {
       { data: { id }, message: 'Tạo khóa học thành công', statusCode: 201 },
       { status: 201 }
     );
-  } catch (error) {
-    console.error('POST /api/mentor-courses error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

@@ -33,8 +33,8 @@ function PaymentSuccessContent() {
   const redirectPath = isVipUpgrade
     ? '/profile'
     : isMentorPayment
-    ? '/customer/mentor-bookings'
-    : '/customer/bookings';
+    ? '/schedule'
+    : '/profile';
 
   const callConfirm = useCallback(async () => {
     setConfirmStatus('loading');
@@ -167,9 +167,7 @@ function PaymentSuccessContent() {
             ? `Gói VIP ${planId ? PLAN_LABELS[planId] ?? planId : ''} đã được kích hoạt. Tận hưởng các quyền lợi đặc biệt ngay bây giờ.`
             : isMentorPayment
             ? 'Đặt lịch mentor của bạn đã được xác nhận.'
-            : type === 'deposit'
-            ? 'Đặt cọc thành công. Chúng tôi sẽ liên hệ để giao kit xét nghiệm.'
-            : 'Thanh toán hoàn tất. Bạn có thể xem kết quả xét nghiệm ngay bây giờ.'}
+            : 'Thanh toán hoàn tất.'}
         </p>
 
         {/* Order ref */}

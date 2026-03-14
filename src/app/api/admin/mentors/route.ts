@@ -61,8 +61,7 @@ export async function GET(request: NextRequest) {
       message: 'OK',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('GET /api/admin/mentors error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -127,8 +126,7 @@ export async function PATCH(request: NextRequest) {
       message: 'Cập nhật hồ sơ Mentor thành công',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('PATCH /api/admin/mentors error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

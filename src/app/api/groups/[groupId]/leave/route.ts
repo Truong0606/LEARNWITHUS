@@ -105,8 +105,7 @@ export async function POST(
       { data: null, message: 'Đã rời nhóm học thành công', statusCode: 200 },
       { status: 200 }
     );
-  } catch (error) {
-    console.error('POST /api/groups/[groupId]/leave error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

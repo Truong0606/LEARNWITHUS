@@ -70,8 +70,7 @@ export async function GET(request: NextRequest) {
       message: 'Lấy danh sách bài viết thành công',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('GET /api/admin/posts error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

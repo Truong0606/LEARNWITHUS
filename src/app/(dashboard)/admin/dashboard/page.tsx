@@ -87,7 +87,6 @@ export default function AdminDashboardPage() {
           activeSessions: 67,
         });
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
       } finally {
         setLoading(false);
       }

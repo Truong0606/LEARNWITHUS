@@ -142,11 +142,11 @@ export default function PomodoroPage() {
       });
       if (isVip) loadVipStats(token);
     } catch {
-      // silent fail
+      // Bỏ qua
     }
   }, [token, currentSubject, isVip, loadVipStats]);
 
-  // Keep saveSessionRef in sync so the completion effect can call it without being in deps
+  // Cập nhật ref saveSession
   useEffect(() => {
     saveSessionRef.current = saveSession;
   }, [saveSession]);
@@ -164,7 +164,7 @@ export default function PomodoroPage() {
     return ((total - timeLeft) / total) * 100;
   };
 
-  // Handle mode change — resets timer and completion guard
+  // Đổi chế độ
   const handleModeChange = useCallback((newMode: TimerMode) => {
     setMode(newMode);
     setTimeLeft(DEFAULT_TIMES[newMode]);
@@ -177,14 +177,14 @@ export default function PomodoroPage() {
     setIsRunning((prev) => !prev);
   };
 
-  // Handle Reset — also resets completion guard
+  // Reset timer
   const resetTimer = useCallback(() => {
     setTimeLeft(DEFAULT_TIMES[mode]);
     setIsRunning(false);
     completionFiredRef.current = false;
   }, [mode]);
 
-  // EFFECT 1: Ticking — only depends on isRunning, NOT on saveSession
+  // Đếm giây
   useEffect(() => {
     if (!isRunning || timeLeft <= 0) return;
     const interval = setInterval(() => {
@@ -193,16 +193,14 @@ export default function PomodoroPage() {
     return () => clearInterval(interval);
   }, [isRunning, timeLeft]);
 
-  // EFFECT 2: Reset the completion guard whenever timeLeft is non-zero
-  // This ensures the next countdown cycle can fire completion again
+  // Reset completion guard khi timeLeft > 0
   useEffect(() => {
     if (timeLeft > 0) {
       completionFiredRef.current = false;
     }
   }, [timeLeft]);
 
-  // EFFECT 3: Completion detection — fires ONCE per cycle via completionFiredRef
-  // Does NOT depend on saveSession (uses saveSessionRef instead)
+  // Phát hiện hoàn thành 1 chu kỳ
   useEffect(() => {
     if (timeLeft !== 0 || completionFiredRef.current) return;
     completionFiredRef.current = true;

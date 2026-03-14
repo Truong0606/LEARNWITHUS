@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { DashboardHeader } from '@/components/dashboard';
 import { Loading } from '@/components/shared';
 import {
@@ -109,7 +110,7 @@ export default function AdminMentorsPage() {
       });
       const data = await res.json();
       if (Array.isArray(data.data)) setMentors(data.data);
-    } catch (err) { console.error(err); }
+    } catch {}
     finally { setLoading(false); }
   }, [filterActive]);
 
@@ -125,7 +126,7 @@ export default function AdminMentorsPage() {
       const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       if (data.data) setRequests(data.data as MentorRequestDto[]);
-    } catch (err) { console.error(err); }
+    } catch {}
     finally { setRequestsLoading(false); }
   }, [statusFilter]);
 
@@ -334,7 +335,7 @@ export default function AdminMentorsPage() {
                   <div className="flex flex-wrap items-center gap-4 p-4">
                     <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-slate-100 text-xl font-bold text-slate-600">
                       {mentor.avatarUrl ? (
-                        <img src={mentor.avatarUrl} alt="" className="h-full w-full rounded-xl object-cover" />
+                        <Image src={mentor.avatarUrl} alt="" width={48} height={48} className="h-full w-full rounded-xl object-cover" />
                       ) : (
                         mentor.fullName?.charAt(0).toUpperCase()
                       )}

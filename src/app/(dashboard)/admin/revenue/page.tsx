@@ -66,7 +66,6 @@ export default function AdminRevenuePage() {
       const json = await res.json();
       if (json.data) setData(json.data);
     } catch (err) {
-      console.error(err);
     } finally {
       setLoading(false);
     }

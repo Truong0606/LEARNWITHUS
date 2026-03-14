@@ -53,7 +53,6 @@ export default function AdminUsersPage() {
         setUsers(data.data as UserDto[]);
       }
     } catch (err) {
-      console.error(err);
       setError('Không thể tải danh sách người dùng');
     } finally {
       setLoading(false);

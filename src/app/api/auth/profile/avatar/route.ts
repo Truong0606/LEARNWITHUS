@@ -72,7 +72,6 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     const err = error as Error;
-    console.error('POST /api/auth/profile/avatar error:', err);
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: err.message || 'Lỗi máy chủ khi tải ảnh lên', statusCode: 500 },
       { status: 500 }

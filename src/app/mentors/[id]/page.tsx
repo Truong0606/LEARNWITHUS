@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { Header, Footer } from '@/components/shared';
 import {
@@ -112,27 +113,20 @@ export default function MentorDetailPage() {
     fetchUser();
   }, []);
 
-  // Fetch mentor + reviews + courses
+  // Fetch mentor (includes reviews + courses in one request)
   useEffect(() => {
     if (!mentorId) return;
     const fetchData = async () => {
       setPageLoading(true);
       try {
-        const mentorRes = await fetch(`/api/mentors/${mentorId}`);
-        const mentorData = await mentorRes.json();
-        let mentorUserId = mentorId;
-        if (mentorData.data) {
-          setMentor(mentorData.data.profile);
-          setReviews(mentorData.data.reviews || []);
-          mentorUserId = mentorData.data.profile?.userId || mentorId;
+        const res = await fetch(`/api/mentors/${mentorId}`);
+        const data = await res.json();
+        if (data.data) {
+          setMentor(data.data.profile);
+          setReviews(data.data.reviews || []);
+          setCourses(Array.isArray(data.data.courses) ? data.data.courses : []);
         }
-        const coursesRes = await fetch(`/api/mentor-courses?mentorId=${mentorUserId}`);
-        const coursesData = await coursesRes.json();
-        if (Array.isArray(coursesData.data)) {
-          setCourses(coursesData.data);
-        }
-      } catch (err) {
-        console.error('Failed to fetch mentor:', err);
+      } catch {
       } finally {
         setPageLoading(false);
       }
@@ -331,9 +325,11 @@ export default function MentorDetailPage() {
             <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
               <div className="flex flex-col gap-6 sm:flex-row">
                 {mentor.avatarUrl ? (
-                  <img
+                  <Image
                     src={mentor.avatarUrl}
                     alt={mentor.fullName}
+                    width={96}
+                    height={96}
                     className="h-24 w-24 flex-shrink-0 rounded-2xl object-cover"
                   />
                 ) : (
@@ -371,7 +367,9 @@ export default function MentorDetailPage() {
                 {mentor.experience && (
                   <span className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-700">
                     <Clock size={14} />
-                    {mentor.experience}
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
+                    Số năm kinh nghiệm: {mentor.experience}
+                  </p>
                   </span>
                 )}
               </div>

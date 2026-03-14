@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, COLLECTIONS } from '@/lib/firebase/admin';
 import { Timestamp } from 'firebase-admin/firestore';
-import type { ApiResponse, MentorProfile, MentorReview } from '@/types';
+import type { ApiResponse, MentorProfile, MentorReview, MentorCourse } from '@/types';
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -69,29 +69,53 @@ export async function GET(request: NextRequest, context: RouteContext) {
         ? avail.split(',').map((s: string) => s.trim()).filter(Boolean)
         : [];
 
-    // Fetch recent reviews (bỏ qua nếu thiếu index)
-    let reviews: MentorReview[] = [];
-    try {
-      const reviewsSnapshot = await adminDb
+    const userId = profile.userId;
+
+    // Fetch reviews + courses in parallel
+    const [reviewsResult, coursesSnapshot] = await Promise.all([
+      adminDb
         .collection(COLLECTIONS.mentorReviews)
-        .where('mentorId', '==', profile.userId)
+        .where('mentorId', '==', userId)
         .orderBy('createdAt', 'desc')
         .limit(10)
-        .get();
-      reviews = reviewsSnapshot.docs.map((doc) =>
-        serializeDoc(doc.data() as Record<string, unknown>)
-      ) as unknown as MentorReview[];
-    } catch {
-      // Thiếu composite index (mentorId, createdAt) - trả về profile không có reviews
-    }
+        .get()
+        .then((snap) =>
+          snap.docs.map((doc) =>
+            serializeDoc(doc.data() as Record<string, unknown>)
+          ) as unknown as MentorReview[]
+        )
+        .catch(() => [] as MentorReview[]),
+      adminDb
+        .collection(COLLECTIONS.mentorCourses)
+        .where('mentorId', '==', userId)
+        .where('isActive', '==', true)
+        .limit(100)
+        .get()
+        .catch(() => ({ docs: [] })),
+    ]);
 
-    return NextResponse.json<ApiResponse<{ profile: MentorProfile; reviews: MentorReview[] }>>({
-      data: { profile, reviews },
+    const courses: MentorCourse[] = coursesSnapshot.docs
+      ? coursesSnapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            ...data,
+            id: data.id ?? doc.id,
+            createdAt: data.createdAt?.toDate?.()?.toISOString?.() ?? '',
+            updatedAt: data.updatedAt?.toDate?.()?.toISOString?.() ?? '',
+          } as MentorCourse;
+        })
+      : [];
+
+    const res = NextResponse.json<
+      ApiResponse<{ profile: MentorProfile; reviews: MentorReview[]; courses: MentorCourse[] }>
+    >({
+      data: { profile, reviews: reviewsResult, courses },
       message: 'OK',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('GET /api/mentors/[id] error:', error);
+    res.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
+    return res;
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

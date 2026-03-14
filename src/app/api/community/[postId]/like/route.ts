@@ -63,8 +63,7 @@ export async function POST(
       message: alreadyLiked ? 'Đã bỏ thích' : 'Đã thích bài viết',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('POST /api/community/[postId]/like error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

@@ -14,6 +14,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { VIP_PLANS, type VipPlanId } from '@/types';
 
 const vipBenefits = [
   { icon: GraduationCap, text: '2 buổi Mentor miễn phí mỗi tháng' },
@@ -24,33 +25,12 @@ const vipBenefits = [
 ];
 
 const plans = [
-  {
-    id: 'monthly',
-    name: 'Hàng tháng',
-    price: 5000,
-    period: 'tháng',
-    popular: false,
-    savings: null,
-  },
-  {
-    id: 'quarterly',
-    name: '3 tháng',
-    price: 249000,
-    period: '3 tháng',
-    popular: true,
-    savings: 'Tiết kiệm 16%',
-  },
-  {
-    id: 'yearly',
-    name: '1 năm',
-    price: 799000,
-    period: 'năm',
-    popular: false,
-    savings: 'Tiết kiệm 33%',
-  },
+  { id: 'monthly' as const, name: VIP_PLANS.monthly.name, price: VIP_PLANS.monthly.price, period: 'tháng', popular: false, savings: null as string | null },
+  { id: 'quarterly' as const, name: VIP_PLANS.quarterly.name, price: VIP_PLANS.quarterly.price, period: '3 tháng', popular: true, savings: 'Tiết kiệm 16%' },
+  { id: 'yearly' as const, name: VIP_PLANS.yearly.name, price: VIP_PLANS.yearly.price, period: 'năm', popular: false, savings: 'Tiết kiệm 33%' },
 ] as const;
 
-type PlanId = (typeof plans)[number]['id'];
+type PlanId = VipPlanId;
 
 export default function UpgradePage() {
   const router = useRouter();

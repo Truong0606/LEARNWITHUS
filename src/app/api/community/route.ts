@@ -92,13 +92,14 @@ export async function GET(request: NextRequest) {
       saved_by_user: userId ? (post.savedBy || []).includes(userId) : false,
     }));
 
-    return NextResponse.json<ApiResponse<typeof postsWithUserInfo>>({
+    const res = NextResponse.json<ApiResponse<typeof postsWithUserInfo>>({
       data: postsWithUserInfo,
       message: 'Lấy danh sách bài viết thành công',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('GET /api/community error:', error);
+    res.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
+    return res;
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -135,7 +136,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Parallel fetch: user and group are independent (async-parallel best practice)
+    // Lấy user và group song song
     const userDocPromise = adminDb.collection(COLLECTIONS.users).doc(payload.userId).get();
     const groupDocPromise = groupId
       ? adminDb.collection(COLLECTIONS.studyGroups).doc(groupId).get()
@@ -213,8 +214,7 @@ export async function POST(request: NextRequest) {
       { data: { id: postId }, message: 'Đăng bài thành công', statusCode: 201 },
       { status: 201 }
     );
-  } catch (error) {
-    console.error('POST /api/community error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

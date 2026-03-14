@@ -12,6 +12,7 @@ import {
   CalendarDays,
   Star,
   RefreshCcw,
+  ExternalLink,
 } from 'lucide-react';
 
 interface ScheduleBooking {
@@ -24,6 +25,7 @@ interface ScheduleBooking {
   scheduledAt: string;
   topic: string;
   reviewId?: string;
+  meetingLink?: string;
 }
 
 const DAY_LABELS = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'];
@@ -113,7 +115,6 @@ export default function SchedulePage() {
         setBookings(activeBookings);
       }
     } catch (err) {
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -317,6 +318,18 @@ export default function SchedulePage() {
                               <p className="mt-0.5 truncate text-[11px] opacity-75">
                                 {b.mentorName}
                               </p>
+                              {b.meetingLink && ['paid', 'completed'].includes(b.status) && (
+                                <a
+                                  href={b.meetingLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="mt-1 flex items-center gap-1 rounded bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700 hover:bg-blue-200"
+                                >
+                                  <ExternalLink size={11} />
+                                  Vào link học
+                                </a>
+                              )}
                               {canReview(b) && (
                                 <button
                                   onClick={(e) => {

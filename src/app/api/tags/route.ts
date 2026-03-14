@@ -35,8 +35,7 @@ export async function GET() {
       { status: 200 }
     );
 
-  } catch (error) {
-    console.error('Get tags error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -114,8 +113,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
 
-  } catch (error) {
-    console.error('Create tag error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { Header, Footer } from '@/components/shared';
 import {
@@ -220,7 +221,7 @@ function GroupPostCard({ post, isAdmin }: { post: GroupPost; isAdmin: boolean })
           post.authorAvatarUrl ? '' : `bg-gradient-to-br ${getAvatarColor(post.authorId)} text-white font-semibold text-xs`
         }`}>
           {post.authorAvatarUrl ? (
-            <img src={post.authorAvatarUrl} alt={post.authorName} className="w-full h-full object-cover" />
+            <Image src={post.authorAvatarUrl} alt={post.authorName} width={36} height={36} className="w-full h-full object-cover" />
           ) : (
             post.authorAvatar
           )}
@@ -334,7 +335,6 @@ export default function GroupDetailPage() {
         router.push('/groups');
       }
     } catch (error) {
-      console.error('Error fetching group:', error);
     } finally {
       setLoading(false);
     }
@@ -353,7 +353,6 @@ export default function GroupDetailPage() {
         setGroupPosts(data.data);
       }
     } catch (error) {
-      console.error('Error fetching group posts:', error);
     } finally {
       setPostsLoading(false);
     }
@@ -685,7 +684,7 @@ export default function GroupDetailPage() {
                         currentUserAvatar ? '' : 'bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-white font-semibold text-sm'
                       }`}>
                         {currentUserAvatar ? (
-                          <img src={currentUserAvatar} alt="Avatar" className="w-full h-full object-cover" />
+                          <Image src={currentUserAvatar} alt="Avatar" width={40} height={40} className="w-full h-full object-cover" />
                         ) : (
                           currentUserInitials
                         )}
@@ -743,7 +742,7 @@ export default function GroupDetailPage() {
                               pending.avatarUrl ? '' : `bg-gradient-to-br ${getAvatarColor(pending.userId)} text-white font-semibold text-sm`
                             }`}>
                               {pending.avatarUrl ? (
-                                <img src={pending.avatarUrl} alt={pending.name} className="w-full h-full object-cover" />
+                                <Image src={pending.avatarUrl} alt={pending.name} width={40} height={40} className="w-full h-full object-cover" />
                               ) : (
                                 pending.avatar
                               )}
@@ -808,7 +807,7 @@ export default function GroupDetailPage() {
                             member.avatarUrl ? '' : `bg-gradient-to-br ${getAvatarColor(member.userId)} text-white font-semibold text-sm`
                           }`}>
                             {member.avatarUrl ? (
-                              <img src={member.avatarUrl} alt={member.name} className="w-full h-full object-cover" />
+                              <Image src={member.avatarUrl} alt={member.name} width={40} height={40} className="w-full h-full object-cover" />
                             ) : (
                               member.avatar
                             )}
@@ -922,7 +921,7 @@ export default function GroupDetailPage() {
                 );
               })()}
 
-              {/* Events Tab (placeholder) */}
+              {/* Tab Sự kiện */}
               {activeTab === 'events' && (
                 <div className="py-16 text-center bg-white rounded-2xl border border-gray-100">
                   <Settings size={48} className="mx-auto mb-4 text-gray-300" />
@@ -958,7 +957,7 @@ export default function GroupDetailPage() {
                           admin.avatarUrl ? '' : `bg-gradient-to-br ${getAvatarColor(admin.userId)} text-white font-semibold text-xs`
                         }`}>
                           {admin.avatarUrl ? (
-                            <img src={admin.avatarUrl} alt={admin.name} className="w-full h-full object-cover" />
+                            <Image src={admin.avatarUrl} alt={admin.name} width={32} height={32} className="w-full h-full object-cover" />
                           ) : (
                             admin.avatar
                           )}

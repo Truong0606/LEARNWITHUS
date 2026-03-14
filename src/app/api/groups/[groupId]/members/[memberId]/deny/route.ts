@@ -117,8 +117,7 @@ export async function PATCH(
       { data: { status: 'denied' }, message: 'Đã từ chối yêu cầu tham gia nhóm', statusCode: 200 },
       { status: 200 }
     );
-  } catch (error) {
-    console.error('PATCH /api/groups/[groupId]/members/[memberId]/deny error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

@@ -2,18 +2,12 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/utils';
-import { ApiResponse, BookingStatus } from '@/types';
-import { 
-  sendOtpEmail, 
-  sendBookingStatusEmail, 
-  sendResultReadyEmail,
-  sendWelcomeEmail 
-} from '@/lib/email';
+import { ApiResponse } from '@/types';
+import { sendOtpEmail, sendWelcomeEmail } from '@/lib/email';
 
 // POST - Test email sending
 export async function POST(request: NextRequest) {
   try {
-    // Verify authentication
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json<ApiResponse<null>>(
@@ -22,9 +16,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const token = authHeader.substring(7);
-    const payload = verifyToken(token);
-    
+    const payload = verifyToken(authHeader.substring(7));
     if (!payload) {
       return NextResponse.json<ApiResponse<null>>(
         { data: null, message: 'Token không hợp lệ', statusCode: 401 },
@@ -32,7 +24,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Only Admin can test emails
     if (payload.role !== 'Admin') {
       return NextResponse.json<ApiResponse<null>>(
         { data: null, message: 'Không có quyền thực hiện', statusCode: 403 },
@@ -41,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: {
-      type: 'otp' | 'booking_status' | 'result_ready' | 'welcome';
+      type: 'otp' | 'welcome';
       to: string;
       data?: Record<string, unknown>;
     } = await request.json();
@@ -56,41 +47,15 @@ export async function POST(request: NextRequest) {
     }
 
     let result;
-
-    switch (type) {
-      case 'otp':
-        result = await sendOtpEmail(to, '123456', 'reset');
-        break;
-      
-      case 'booking_status':
-        result = await sendBookingStatusEmail(
-          to,
-          data?.clientName as string || 'Test User',
-          data?.bookingId as string || 'TEST123456',
-          data?.serviceName as string || 'Xét nghiệm ADN Cha Con',
-          (data?.status as BookingStatus) || BookingStatus.DepositPaid
-        );
-        break;
-      
-      case 'result_ready':
-        result = await sendResultReadyEmail(
-          to,
-          data?.clientName as string || 'Test User',
-          data?.bookingId as string || 'TEST123456',
-          data?.serviceName as string || 'Xét nghiệm ADN Cha Con',
-          'https://example.com/results/123'
-        );
-        break;
-      
-      case 'welcome':
-        result = await sendWelcomeEmail(to, data?.fullName as string || 'Test User');
-        break;
-      
-      default:
-        return NextResponse.json<ApiResponse<null>>(
-          { data: null, message: 'Loại email không hợp lệ', statusCode: 400 },
-          { status: 400 }
-        );
+    if (type === 'otp') {
+      result = await sendOtpEmail(to, '123456', 'reset');
+    } else if (type === 'welcome') {
+      result = await sendWelcomeEmail(to, data?.fullName as string || 'Test User');
+    } else {
+      return NextResponse.json<ApiResponse<null>>(
+        { data: null, message: 'Loại email không hợp lệ (otp | welcome)', statusCode: 400 },
+        { status: 400 }
+      );
     }
 
     if (result.success) {
@@ -109,8 +74,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-  } catch (error) {
-    console.error('Test email error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

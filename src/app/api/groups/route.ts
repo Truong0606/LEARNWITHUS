@@ -76,13 +76,14 @@ export async function GET(request: NextRequest) {
       userMemberRole: membershipMap[group.id]?.role as StudyGroupWithMembership['userMemberRole'],
     }));
 
-    return NextResponse.json<ApiResponse<StudyGroupWithMembership[]>>({
+    const res = NextResponse.json<ApiResponse<StudyGroupWithMembership[]>>({
       data: result,
       message: 'Lấy danh sách nhóm học thành công',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('GET /api/groups error:', error);
+    res.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
+    return res;
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -204,8 +205,7 @@ export async function POST(request: NextRequest) {
       { data: { id: groupId }, message: 'Tạo nhóm học thành công', statusCode: 201 },
       { status: 201 }
     );
-  } catch (error) {
-    console.error('POST /api/groups error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

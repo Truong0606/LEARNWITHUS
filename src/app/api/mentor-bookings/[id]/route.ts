@@ -48,8 +48,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       message: 'OK',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('GET /api/mentor-bookings/[id] error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -175,8 +174,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       message: 'Cập nhật thành công',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('PATCH /api/mentor-bookings/[id] error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -270,8 +268,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       },
       { status: 200 }
     );
-  } catch (error) {
-    console.error('DELETE /api/mentor-bookings/[id] error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

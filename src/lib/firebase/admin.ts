@@ -20,7 +20,7 @@ function getStorageBucket(projectId: string): string {
 function initializeFirebaseAdmin() {
   if (getApps().length) return;
 
-  // 1. FIREBASE_SERVICE_ACCOUNT (recommended for Vercel) - full JSON as string
+  // 1. FIREBASE_SERVICE_ACCOUNT - chuỗi JSON đầy đủ
   const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;
   if (serviceAccountJson) {
     try {
@@ -41,11 +41,9 @@ function initializeFirebaseAdmin() {
           credential: admin.credential.cert({ projectId, clientEmail, privateKey } as admin.ServiceAccount),
           storageBucket,
         });
-        console.log('✅ Firebase Admin initialized (FIREBASE_SERVICE_ACCOUNT)', { storageBucket });
         return;
       }
-    } catch (e) {
-      console.error('❌ FIREBASE_SERVICE_ACCOUNT parse error:', e);
+    } catch {
     }
   }
 
@@ -66,7 +64,6 @@ function initializeFirebaseAdmin() {
           credential: admin.credential.cert(serviceAccount),
           storageBucket,
         });
-        console.log('✅ Firebase Admin initialized (serviceAccountKey.json)', { storageBucket });
         return;
       }
     } catch {
@@ -80,7 +77,6 @@ function initializeFirebaseAdmin() {
   let privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
   if (!projectId || !clientEmail || !privateKey) {
-    console.warn('⚠ Firebase Admin: missing env vars. Set FIREBASE_SERVICE_ACCOUNT or FIREBASE_PROJECT_ID+CLIENT_EMAIL+PRIVATE_KEY');
     return;
   }
 
@@ -96,9 +92,7 @@ function initializeFirebaseAdmin() {
       credential: admin.credential.cert({ projectId, clientEmail, privateKey } as admin.ServiceAccount),
       storageBucket,
     });
-    console.log('✅ Firebase Admin initialized (env vars)');
-  } catch (error) {
-    console.error('❌ Firebase Admin init failed:', error);
+  } catch {
   }
 }
 

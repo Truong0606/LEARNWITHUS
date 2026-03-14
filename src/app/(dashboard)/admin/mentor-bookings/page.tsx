@@ -101,7 +101,6 @@ export default function AdminMentorBookingsPage() {
         }
       }
     } catch (err) {
-      console.error(err);
       setError('Không thể tải danh sách đơn đặt lịch');
     } finally {
       setLoading(false);

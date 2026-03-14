@@ -90,8 +90,7 @@ export async function POST(
       { data: { id: commentId }, message: 'Bình luận thành công', statusCode: 201 },
       { status: 201 }
     );
-  } catch (error) {
-    console.error('POST /api/community/[postId]/comments error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

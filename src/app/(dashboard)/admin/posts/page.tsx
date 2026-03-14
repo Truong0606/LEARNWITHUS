@@ -75,7 +75,6 @@ export default function AdminPostsPage() {
         if (groupsData.data) setGroups(groupsData.data as StudyGroup[]);
       }
     } catch (err) {
-      console.error(err);
       setError('Không thể tải danh sách bài viết');
     } finally {
       setLoading(false);

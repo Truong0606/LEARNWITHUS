@@ -398,7 +398,6 @@ export default function GroupsPage() {
         setGroups(data.data);
       }
     } catch (error) {
-      console.error('Error fetching groups:', error);
     } finally {
       setLoading(false);
     }

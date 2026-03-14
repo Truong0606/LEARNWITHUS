@@ -86,8 +86,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       message: 'Đã cập nhật link họp thành công',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('PATCH /api/mentor-bookings/[id]/meeting-link error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

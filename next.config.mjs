@@ -2,6 +2,7 @@
 const nextConfig = {
   reactCompiler: true,
   serverExternalPackages: ['firebase-admin'],
+  compress: true,
   images: {
     remotePatterns: [
       {

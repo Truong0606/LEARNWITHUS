@@ -138,8 +138,7 @@ export async function GET(request: NextRequest) {
       message: 'OK',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('GET /api/admin/mentor-payouts error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -201,8 +200,7 @@ export async function POST(request: NextRequest) {
       message: `Đã xác nhận thanh toán cho ${bookingIds.length} đơn Mentor`,
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('POST /api/admin/mentor-payouts error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

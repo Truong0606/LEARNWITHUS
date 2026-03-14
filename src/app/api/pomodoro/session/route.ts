@@ -56,8 +56,7 @@ export async function POST(request: NextRequest) {
       { data: { id }, message: 'Đã lưu phiên Pomodoro', statusCode: 201 },
       { status: 201 }
     );
-  } catch (error) {
-    console.error('POST /api/pomodoro/session error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

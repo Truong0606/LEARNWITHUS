@@ -152,8 +152,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       { data: { userId }, message: 'Cập nhật người dùng thành công', statusCode: 200 },
       { status: 200 }
     );
-  } catch (error) {
-    console.error('PUT /api/admin/users/[userId] error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -192,8 +191,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       { data: { userId }, message: 'Đã vô hiệu hóa tài khoản', statusCode: 200 },
       { status: 200 }
     );
-  } catch (error) {
-    console.error('DELETE /api/admin/users/[userId] error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

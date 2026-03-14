@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const subject = searchParams.get('subject');
     const search = searchParams.get('search');
-    const limit = Math.min(parseInt(searchParams.get('limit') || '500', 10), 500);
+    const limit = Math.min(parseInt(searchParams.get('limit') || '30', 10), 100);
 
     // Lấy mentor profiles (không dùng orderBy để tránh composite index)
     let snapshot;
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
         .limit(limit)
         .get();
     } catch {
-      // Fallback: lấy tất cả rồi lọc (nếu query trên lỗi do index)
+      // Lấy tất cả rồi lọc nếu query lỗi (thiếu index)
       snapshot = await adminDb
         .collection(COLLECTIONS.mentorProfiles)
         .limit(limit)
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
       return serializeProfile(profileData);
     });
 
-    // Lọc isActive nếu dùng fallback (hỗ trợ cả boolean và string)
+    // Lọc isActive (hỗ trợ boolean và string)
     profiles = profiles.filter((p) => {
       const active = (p as unknown as Record<string, unknown>).isActive;
       return active === true || active === 'true';
@@ -82,13 +82,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return NextResponse.json<ApiResponse<MentorProfile[]>>({
+    const res = NextResponse.json<ApiResponse<MentorProfile[]>>({
       data: profiles,
       message: 'OK',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('GET /api/mentors error:', error);
+    res.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
+    return res;
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -152,8 +153,7 @@ export async function PUT(request: NextRequest) {
       message: 'Cập nhật hồ sơ thành công',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('PUT /api/mentors error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

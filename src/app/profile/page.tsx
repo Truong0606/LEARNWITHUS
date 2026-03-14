@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Header, Footer } from '@/components/shared';
 import {
@@ -137,7 +138,6 @@ export default function ProfilePage() {
         });
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
     } finally {
       setLoading(false);
     }
@@ -167,7 +167,6 @@ export default function ProfilePage() {
         setJoinedGroups(joined);
       }
     } catch (error) {
-      console.error('Error fetching groups:', error);
     }
   }, []);
 
@@ -441,9 +440,11 @@ export default function ProfilePage() {
                   {avatarUploading ? (
                     <Loader2 size={32} className="animate-spin" />
                   ) : profile.avatarUrl ? (
-                    <img
+                    <Image
                       src={profile.avatarUrl}
                       alt={profile.fullName}
+                      width={112}
+                      height={112}
                       className="w-full h-full object-cover"
                     />
                   ) : (

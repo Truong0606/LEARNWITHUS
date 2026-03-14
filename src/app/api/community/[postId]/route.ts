@@ -126,8 +126,7 @@ export async function GET(
       message: 'Lấy chi tiết bài viết thành công',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('GET /api/community/[postId] error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

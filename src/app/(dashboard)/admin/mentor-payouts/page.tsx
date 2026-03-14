@@ -71,7 +71,7 @@ export default function AdminMentorPayoutsPage() {
         setByMentor(data.data.byMentor || {});
         setSummary(data.data.summary || { totalOwed: 0, totalPaid: 0 });
       }
-    } catch (err) { console.error(err); }
+    } catch {}
     finally { setLoading(false); }
   }, [paidFilter, selectedMentorId]);
 

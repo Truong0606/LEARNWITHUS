@@ -40,7 +40,6 @@ export default function AdminGroupsPage() {
         setGroups(data.data as StudyGroup[]);
       }
     } catch (err) {
-      console.error(err);
     } finally {
       setLoading(false);
     }

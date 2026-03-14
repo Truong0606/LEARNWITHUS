@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Bell, Search, User, ChevronDown } from 'lucide-react';
 
 interface DashboardHeaderProps {
@@ -63,7 +64,7 @@ export default function DashboardHeader({ title }: DashboardHeaderProps) {
         <div className="flex cursor-pointer items-center gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-gray-50">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-sm font-semibold text-white overflow-hidden">
             {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt={user.userName} className="h-full w-full object-cover" />
+              <Image src={user.avatarUrl} alt={user.userName} width={40} height={40} className="h-full w-full object-cover" />
             ) : user?.userName ? (
               getInitials(user.userName)
             ) : (

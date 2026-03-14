@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { Header, Footer } from '@/components/shared';
 import {
@@ -141,7 +142,7 @@ function CommentItem({
           }`}
         >
           {comment.authorAvatarUrl ? (
-            <img src={comment.authorAvatarUrl} alt={comment.authorName} className="w-full h-full object-cover" />
+            <Image src={comment.authorAvatarUrl} alt={comment.authorName} width={isReply ? 32 : 40} height={isReply ? 32 : 40} className="w-full h-full object-cover" />
           ) : (
             comment.authorAvatar
           )}
@@ -404,7 +405,7 @@ export default function PostDetailPage() {
                     }`}
                   >
                     {post.authorAvatarUrl ? (
-                      <img src={post.authorAvatarUrl} alt={post.authorName} className="w-full h-full object-cover" />
+                      <Image src={post.authorAvatarUrl} alt={post.authorName} width={48} height={48} className="w-full h-full object-cover" />
                     ) : (
                       post.authorAvatar
                     )}
@@ -452,10 +453,12 @@ export default function PostDetailPage() {
               {post.images && post.images.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-4">
                   {post.images.map((url, i) => (
-                    <img
+                    <Image
                       key={i}
                       src={url}
                       alt={`Ảnh ${i + 1}`}
+                      width={400}
+                      height={256}
                       className="max-h-64 rounded-xl object-cover border border-gray-100"
                     />
                   ))}
@@ -516,7 +519,7 @@ export default function PostDetailPage() {
                 userAvatarUrl ? '' : 'bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-white font-semibold text-sm'
               }`}>
                 {userAvatarUrl ? (
-                  <img src={userAvatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  <Image src={userAvatarUrl} alt="Avatar" width={40} height={40} className="w-full h-full object-cover" />
                 ) : (
                   userInitials
                 )}

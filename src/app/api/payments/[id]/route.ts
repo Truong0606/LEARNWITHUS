@@ -4,12 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, COLLECTIONS } from '@/lib/firebase/admin';
 import { verifyToken } from '@/lib/utils';
-import { 
-  Payment,
-  TestBooking,
-  ApiResponse,
-  PaymentStatus 
-} from '@/types';
+import { Payment, ApiResponse, PaymentStatus } from '@/types';
 import { cancelPaymentLink, getPaymentInfo } from '@/lib/payos';
 import { FieldValue } from 'firebase-admin/firestore';
 
@@ -58,23 +53,13 @@ export async function GET(
 
     // Check permission
     if (payload.role === 'Client') {
-      if (payment.bookingId) {
-        const bookingDoc = await adminDb
-          .collection(COLLECTIONS.testBookings)
-          .doc(payment.bookingId)
-          .get();
-
-        if (bookingDoc.exists) {
-          const booking = bookingDoc.data() as TestBooking;
-          if (booking.clientId !== payload.userId) {
-            return NextResponse.json<ApiResponse<null>>(
-              { data: null, message: 'Không có quyền truy cập', statusCode: 403 },
-              { status: 403 }
-            );
-          }
-          payment.booking = booking;
-        }
-      } else if (payment.mentorBookingId) {
+      if (payment.userId && payment.userId !== payload.userId) {
+        return NextResponse.json<ApiResponse<null>>(
+          { data: null, message: 'Không có quyền truy cập', statusCode: 403 },
+          { status: 403 }
+        );
+      }
+      if (payment.mentorBookingId) {
         // Mentor booking payment: only the booking owner can access
         const mbDoc = await adminDb
           .collection(COLLECTIONS.mentorBookings)
@@ -113,7 +98,6 @@ export async function GET(
           }
         }
       } catch (payosError) {
-        console.warn('Could not fetch PayOS status:', payosError);
       }
     }
 
@@ -122,8 +106,7 @@ export async function GET(
       { status: 200 }
     );
 
-  } catch (error) {
-    console.error('Get payment error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -172,22 +155,13 @@ export async function DELETE(
 
     // Check permission
     if (payload.role === 'Client') {
-      if (payment.bookingId) {
-        const bookingDoc = await adminDb
-          .collection(COLLECTIONS.testBookings)
-          .doc(payment.bookingId)
-          .get();
-
-        if (bookingDoc.exists) {
-          const booking = bookingDoc.data() as TestBooking;
-          if (booking.clientId !== payload.userId) {
-            return NextResponse.json<ApiResponse<null>>(
-              { data: null, message: 'Không có quyền hủy thanh toán này', statusCode: 403 },
-              { status: 403 }
-            );
-          }
-        }
-      } else if (payment.mentorBookingId) {
+      if (payment.userId && payment.userId !== payload.userId) {
+        return NextResponse.json<ApiResponse<null>>(
+          { data: null, message: 'Không có quyền hủy thanh toán này', statusCode: 403 },
+          { status: 403 }
+        );
+      }
+      if (payment.mentorBookingId) {
         const mbDoc = await adminDb
           .collection(COLLECTIONS.mentorBookings)
           .doc(payment.mentorBookingId)
@@ -214,7 +188,6 @@ export async function DELETE(
     try {
       await cancelPaymentLink(payment.orderCode, 'User cancelled');
     } catch (payosError) {
-      console.warn('PayOS cancel error:', payosError);
     }
 
     // Update local status
@@ -228,8 +201,7 @@ export async function DELETE(
       { status: 200 }
     );
 
-  } catch (error) {
-    console.error('Cancel payment error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

@@ -1,13 +1,10 @@
-// POST /api/payments/confirm
-// Called from the success page to verify payment with PayOS and apply the upgrade.
-// This is necessary because PayOS webhooks require a public URL (won't fire on localhost).
-// Acts as an idempotent fallback: safe to call even if the webhook already processed it.
+// POST /api/payments/confirm - Xác nhận thanh toán PayOS và áp dụng nâng cấp
 
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, COLLECTIONS } from '@/lib/firebase/admin';
 import { verifyToken } from '@/lib/utils';
 import { getPaymentInfo } from '@/lib/payos';
-import { ApiResponse, Payment, PaymentStatus, BookingStatus, VIP_PLANS, VipPlanId } from '@/types';
+import { ApiResponse, Payment, PaymentStatus, VIP_PLANS, VipPlanId } from '@/types';
 import { FieldValue } from 'firebase-admin/firestore';
 
 export async function POST(request: NextRequest) {
@@ -116,9 +113,6 @@ export async function POST(request: NextRequest) {
         updatedAt: FieldValue.serverTimestamp(),
       });
 
-      console.log(
-        `[confirm] User ${payment.userId} upgraded to VIP "${payment.planId}", expires ${vipExpiresAt.toISOString()}`
-      );
 
       return NextResponse.json<ApiResponse<{ confirmed: true; alreadyProcessed: false; vipExpiresAt: string }>>(
         {
@@ -136,50 +130,19 @@ export async function POST(request: NextRequest) {
         .doc(payment.mentorBookingId)
         .get();
 
-      if (mentorBookingDoc.exists && mentorBookingDoc.data()?.status === 'pending') {
+      const bookingStatus = mentorBookingDoc.data()?.status;
+      if (mentorBookingDoc.exists && ['pending', 'confirmed'].includes(bookingStatus)) {
         await adminDb.collection(COLLECTIONS.mentorBookings).doc(payment.mentorBookingId).update({
           status: 'paid',
           paymentId: paymentDoc.id,
           updatedAt: FieldValue.serverTimestamp(),
         });
-        console.log(`[confirm] MentorBooking ${payment.mentorBookingId} updated to paid`);
       }
 
       return NextResponse.json<ApiResponse<{ confirmed: true; alreadyProcessed: false }>>(
         {
           data: { confirmed: true, alreadyProcessed: false },
           message: 'Thanh toán lịch mentor thành công',
-          statusCode: 200,
-        },
-        { status: 200 }
-      );
-    }
-
-    if (payment.bookingId) {
-      const bookingDoc = await adminDb
-        .collection(COLLECTIONS.testBookings)
-        .doc(payment.bookingId)
-        .get();
-
-      if (bookingDoc.exists) {
-        const currentStatus = bookingDoc.data()?.status;
-        if (currentStatus === BookingStatus.Pending && payment.depositAmount) {
-          await adminDb.collection(COLLECTIONS.testBookings).doc(payment.bookingId).update({
-            status: BookingStatus.DepositPaid,
-            updatedAt: FieldValue.serverTimestamp(),
-          });
-        } else if (currentStatus === BookingStatus.ResultReady && payment.remainingAmount) {
-          await adminDb.collection(COLLECTIONS.testBookings).doc(payment.bookingId).update({
-            status: BookingStatus.FullyPaid,
-            updatedAt: FieldValue.serverTimestamp(),
-          });
-        }
-      }
-
-      return NextResponse.json<ApiResponse<{ confirmed: true; alreadyProcessed: false }>>(
-        {
-          data: { confirmed: true, alreadyProcessed: false },
-          message: 'Thanh toán xét nghiệm thành công',
           statusCode: 200,
         },
         { status: 200 }
@@ -195,8 +158,7 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
-  } catch (error) {
-    console.error('POST /api/payments/confirm error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

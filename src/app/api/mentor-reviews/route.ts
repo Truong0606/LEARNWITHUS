@@ -52,8 +52,7 @@ export async function GET(request: NextRequest) {
       message: 'OK',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('GET /api/mentor-reviews error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -186,8 +185,7 @@ export async function POST(request: NextRequest) {
       { data: { id }, message: 'Đánh giá thành công! Cảm ơn bạn.', statusCode: 201 },
       { status: 201 }
     );
-  } catch (error) {
-    console.error('POST /api/mentor-reviews error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

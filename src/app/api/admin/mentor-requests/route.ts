@@ -90,8 +90,7 @@ export async function GET(request: NextRequest) {
       { data: requests, message: 'Lấy danh sách yêu cầu Mentor thành công', statusCode: 200 },
       { status: 200 }
     );
-  } catch (error) {
-    console.error('GET /api/admin/mentor-requests error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

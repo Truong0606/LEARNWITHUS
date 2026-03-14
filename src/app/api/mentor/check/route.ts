@@ -56,8 +56,7 @@ export async function GET(request: NextRequest) {
       { data: { ok: true }, message: 'OK', statusCode: 200 },
       { status: 200 }
     );
-  } catch (error) {
-    console.error('GET /api/mentor/check error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

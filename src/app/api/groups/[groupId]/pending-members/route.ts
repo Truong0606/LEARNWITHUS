@@ -133,8 +133,7 @@ export async function GET(
       { data: result, message: 'Lấy danh sách yêu cầu chờ duyệt thành công', statusCode: 200 },
       { status: 200 }
     );
-  } catch (error) {
-    console.error('GET /api/groups/[groupId]/pending-members error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

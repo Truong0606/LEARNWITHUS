@@ -1,14 +1,16 @@
-import Header from "@/components/shared/Header";
-import Footer from "@/components/shared/Footer";
-import HeroSection from "@/components/home/HeroSection";
-import FeaturesSection from "@/components/home/FeaturesSection";
-import ProcessSection from "@/components/home/ProcessSection";
-import TestimonialsSection from "@/components/home/TestimonialsSection";
-import TeamSection from "@/components/home/TeamSection";
-import FAQSection from "@/components/home/FAQSection";
-import BlogSection from "@/components/home/BlogSection";
-import TrustSection from "@/components/home/TrustSection";
-import CTASection from "@/components/home/CTASection";
+import dynamic from 'next/dynamic';
+import Header from '@/components/shared/Header';
+import Footer from '@/components/shared/Footer';
+import HeroSection from '@/components/home/HeroSection';
+import FeaturesSection from '@/components/home/FeaturesSection';
+import ProcessSection from '@/components/home/ProcessSection';
+
+const TestimonialsSection = dynamic(() => import('@/components/home/TestimonialsSection'), { ssr: true });
+const TeamSection = dynamic(() => import('@/components/home/TeamSection'), { ssr: true });
+const FAQSection = dynamic(() => import('@/components/home/FAQSection'), { ssr: true });
+const BlogSection = dynamic(() => import('@/components/home/BlogSection'), { ssr: true });
+const TrustSection = dynamic(() => import('@/components/home/TrustSection'), { ssr: true });
+const CTASection = dynamic(() => import('@/components/home/CTASection'), { ssr: true });
 
 export default function HomePage() {
   return (

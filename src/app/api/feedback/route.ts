@@ -5,12 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, COLLECTIONS } from '@/lib/firebase/admin';
 import { verifyToken } from '@/lib/utils';
 import { createDocument } from '@/lib/firebase/firestore';
-import { 
-  Feedback, 
-  User,
-  TestBooking,
-  ApiResponse 
-} from '@/types';
+import { Feedback, User, ApiResponse } from '@/types';
 
 // GET - Get all feedback
 export async function GET(request: NextRequest) {
@@ -120,8 +115,7 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
 
-  } catch (error) {
-    console.error('Get feedback error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -184,30 +178,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // If bookingId provided, verify it belongs to user and is completed
+    // If mentorBookingId provided, verify it belongs to user and is completed
     if (bookingId) {
-      const bookingDoc = await adminDb
-        .collection(COLLECTIONS.testBookings)
+      const mentorBookingDoc = await adminDb
+        .collection(COLLECTIONS.mentorBookings)
         .doc(bookingId)
         .get();
 
-      if (!bookingDoc.exists) {
+      if (!mentorBookingDoc.exists) {
         return NextResponse.json<ApiResponse<null>>(
           { data: null, message: 'Không tìm thấy đặt lịch', statusCode: 404 },
           { status: 404 }
         );
       }
 
-      const booking = bookingDoc.data() as TestBooking;
-
-      if (booking.clientId !== payload.userId) {
+      const mb = mentorBookingDoc.data() as { userId: string; status: string };
+      if (mb.userId !== payload.userId) {
         return NextResponse.json<ApiResponse<null>>(
           { data: null, message: 'Không có quyền đánh giá đặt lịch này', statusCode: 403 },
           { status: 403 }
         );
       }
+      if (mb.status !== 'completed') {
+        return NextResponse.json<ApiResponse<null>>(
+          { data: null, message: 'Chỉ có thể đánh giá sau khi buổi học hoàn thành', statusCode: 400 },
+          { status: 400 }
+        );
+      }
 
-      // Check if already reviewed
       const existingFeedback = await adminDb
         .collection(COLLECTIONS.feedback)
         .where('bookingId', '==', bookingId)
@@ -216,7 +214,7 @@ export async function POST(request: NextRequest) {
 
       if (!existingFeedback.empty) {
         return NextResponse.json<ApiResponse<null>>(
-          { data: null, message: 'Bạn đã đánh giá đơn hàng này rồi', statusCode: 400 },
+          { data: null, message: 'Bạn đã đánh giá buổi học này rồi', statusCode: 400 },
           { status: 400 }
         );
       }
@@ -242,8 +240,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
 
-  } catch (error) {
-    console.error('Create feedback error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

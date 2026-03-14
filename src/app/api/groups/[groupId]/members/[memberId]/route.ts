@@ -120,8 +120,7 @@ export async function PATCH(
         { status: 200 }
       );
     }
-  } catch (error) {
-    console.error('PATCH /api/groups/[groupId]/members/[memberId] error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

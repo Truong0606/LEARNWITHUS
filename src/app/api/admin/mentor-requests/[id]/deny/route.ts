@@ -70,8 +70,7 @@ export async function PATCH(
       { data: { ok: true }, message: 'Đã từ chối yêu cầu Mentor', statusCode: 200 },
       { status: 200 }
     );
-  } catch (error) {
-    console.error('PATCH /api/admin/mentor-requests/[id]/deny error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

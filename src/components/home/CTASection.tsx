@@ -30,7 +30,7 @@ export default function CTASection() {
                 <ArrowRight size={18} />
               </Link>
               <Link
-                href="/services"
+                href="/groups"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 font-semibold transition-all border-2 border-white/30 rounded-xl hover:bg-white/10"
               >
                 Xem nhóm học nổi bật

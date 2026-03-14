@@ -61,7 +61,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     if (!booking.amount || booking.amount <= 0) {
-      // Fallback: lấy giá từ mentorProfile nếu booking không có amount
+      // Lấy giá từ mentorProfile nếu booking chưa có amount
       const mentorProfileSnap = await adminDb
         .collection(COLLECTIONS.mentorProfiles)
         .where('userId', '==', booking.mentorId)
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         .limit(1)
         .get();
     } catch {
-      // Fallback: query without composite index
+      // Query không dùng composite index
       const allPayments = await adminDb
         .collection(COLLECTIONS.payments)
         .where('mentorBookingId', '==', id)
@@ -242,7 +242,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
     });
 
     if (payosResponse.code !== '00') {
-      console.error('PayOS error:', payosResponse);
       return NextResponse.json<ApiResponse<null>>(
         { data: null, message: `Lỗi tạo thanh toán: ${payosResponse.desc}`, statusCode: 400 },
         { status: 400 }
@@ -283,8 +282,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       },
       { status: 201 }
     );
-  } catch (error) {
-    console.error('POST /api/mentor-bookings/[id]/pay error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

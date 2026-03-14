@@ -49,8 +49,7 @@ export async function GET(
       { status: 200 }
     );
 
-  } catch (error) {
-    console.error('Get tag error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -135,8 +134,7 @@ export async function PUT(
       { status: 200 }
     );
 
-  } catch (error) {
-    console.error('Update tag error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -210,8 +208,7 @@ export async function DELETE(
       { status: 200 }
     );
 
-  } catch (error) {
-    console.error('Delete tag error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

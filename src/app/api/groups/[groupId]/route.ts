@@ -154,8 +154,7 @@ export async function GET(
       message: 'Lấy thông tin nhóm học thành công',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('GET /api/groups/[groupId] error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

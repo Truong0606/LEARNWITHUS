@@ -5,8 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, COLLECTIONS } from '@/lib/firebase/admin';
 import { generateOTP, hashOTP, isValidEmail } from '@/lib/utils';
 import { createDocument } from '@/lib/firebase/firestore';
+import { sendOtpEmail } from '@/lib/email';
 import { User, OtpPurpose, OtpDeliveryMethod, ApiResponse } from '@/types';
-import { FieldValue } from 'firebase-admin/firestore';
 
 // OTP validity duration in minutes
 const OTP_VALIDITY_MINUTES = 5;
@@ -15,7 +15,16 @@ const OTP_COOLDOWN_SECONDS = 60;
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    let body: { email?: string };
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json<ApiResponse<null>>(
+        { data: null, message: 'Dữ liệu không hợp lệ', statusCode: 400 },
+        { status: 400 }
+      );
+    }
+    const { email } = body;
 
     // Validate email
     if (!email) {
@@ -48,12 +57,13 @@ export async function POST(request: NextRequest) {
 
     const userDoc = usersSnapshot.docs[0];
     const user = userDoc.data() as User;
+    const userId = user.id ?? userDoc.id;
 
     // Check for recent OTP (cooldown)
     const cooldownTime = new Date(Date.now() - OTP_COOLDOWN_SECONDS * 1000);
     const recentOtpSnapshot = await adminDb
       .collection(COLLECTIONS.otpCodes)
-      .where('userId', '==', user.id)
+      .where('userId', '==', userId)
       .where('purpose', '==', OtpPurpose.ResetPassword)
       .where('isUsed', '==', false)
       .where('createdAt', '>', cooldownTime)
@@ -74,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     // Save OTP to database
     await createDocument(COLLECTIONS.otpCodes, {
-      userId: user.id,
+      userId,
       hashedCode,
       deliveryMethod: OtpDeliveryMethod.Email,
       purpose: OtpPurpose.ResetPassword,
@@ -83,31 +93,52 @@ export async function POST(request: NextRequest) {
       sentTo: email.toLowerCase()
     });
 
-    // TODO: Send email with OTP
-    // For now, log it (in production, integrate with email service like SendGrid, Mailgun, etc.)
-    console.log(`[OTP] Sending OTP ${otpCode} to email: ${email}`);
-    
-    // In development, you might want to return the OTP for testing
-    // Remove this in production!
+    const emailResult = await sendOtpEmail(email.toLowerCase(), otpCode, 'reset');
     const isDev = process.env.NODE_ENV === 'development';
 
+    if (!emailResult.success) {
+      if (isDev) {
+        return NextResponse.json<ApiResponse<{ otpSent: boolean; expiresIn: number; devOtp: string }>>(
+          {
+            data: {
+              otpSent: true,
+              expiresIn: OTP_VALIDITY_MINUTES * 60,
+              devOtp: otpCode,
+            },
+            message: `Email chưa gửi được (${emailResult.error || 'lỗi'}). Dùng mã OTP bên dưới khi chạy local.`,
+            statusCode: 200,
+          },
+          { status: 200 }
+        );
+      }
+      return NextResponse.json<ApiResponse<null>>(
+        {
+          data: null,
+          message: `Không thể gửi email. Vui lòng thử lại sau.`,
+          statusCode: 500,
+        },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json<ApiResponse<{ otpSent: boolean; expiresIn: number; devOtp?: string }>>(
-      { 
-        data: { 
-          otpSent: true, 
+      {
+        data: {
+          otpSent: true,
           expiresIn: OTP_VALIDITY_MINUTES * 60,
-          ...(isDev && { devOtp: otpCode }) // Only in development!
-        }, 
-        message: 'Mã OTP đã được gửi đến email của bạn', 
-        statusCode: 200 
+          ...(isDev && { devOtp: otpCode }),
+        },
+        message: 'Mã OTP đã được gửi đến email của bạn',
+        statusCode: 200,
       },
       { status: 200 }
     );
 
-  } catch (error) {
-    console.error('Forgot password error:', error);
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : 'Unknown error';
+    const detail = process.env.NODE_ENV === 'development' ? `: ${errMsg}` : '';
     return NextResponse.json<ApiResponse<null>>(
-      { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
+      { data: null, message: `Lỗi máy chủ${detail}`, statusCode: 500 },
       { status: 500 }
     );
   }

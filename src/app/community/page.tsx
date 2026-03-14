@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Footer, Header } from '@/components/shared';
 import {
@@ -149,7 +150,7 @@ function PostCard({ post }: { post: PostData }) {
             }`}
           >
             {post.authorAvatarUrl ? (
-              <img src={post.authorAvatarUrl} alt={post.authorName} className="w-full h-full object-cover" />
+              <Image src={post.authorAvatarUrl} alt={post.authorName} width={40} height={40} className="w-full h-full object-cover" />
             ) : (
               post.authorAvatar
             )}
@@ -210,10 +211,12 @@ function PostCard({ post }: { post: PostData }) {
         {post.images && post.images.length > 0 && (
           <div className="flex gap-2 mt-2 overflow-x-auto">
             {post.images.slice(0, 3).map((url, i) => (
-              <img
+              <Image
                 key={i}
                 src={url}
                 alt={`Ảnh ${i + 1}`}
+                width={96}
+                height={96}
                 className="h-24 w-24 object-cover rounded-lg flex-shrink-0"
               />
             ))}
@@ -302,7 +305,6 @@ export default function CommunityPage() {
         setPosts(data.data);
       }
     } catch (error) {
-      console.error('Error fetching posts:', error);
     } finally {
       setLoading(false);
     }

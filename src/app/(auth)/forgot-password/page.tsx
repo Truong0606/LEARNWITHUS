@@ -21,6 +21,7 @@ export default function ForgotPasswordPage() {
   const [newPassword, setNewPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [countdown, setCountdown] = useState(5);
+  const [devOtp, setDevOtp] = useState<string | null>(null);
   const router = useRouter();
 
   const handleSendOTP = async (e: React.FormEvent) => {
@@ -48,9 +49,10 @@ export default function ForgotPasswordPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Không thể gửi email');
+        throw new Error(data.message || data.error || 'Không thể gửi email');
       }
 
+      setDevOtp(data.data?.devOtp ?? null);
       setStep('otp');
     } catch (error) {
       setErrors({ 
@@ -90,7 +92,7 @@ export default function ForgotPasswordPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Không thể đặt lại mật khẩu');
+        throw new Error(data.message || data.error || 'Không thể đặt lại mật khẩu');
       }
 
       setStep('success');

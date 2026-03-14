@@ -143,8 +143,7 @@ export async function PATCH(
       { data: { userId, profileId }, message: 'Đã duyệt yêu cầu Mentor thành công', statusCode: 200 },
       { status: 200 }
     );
-  } catch (error) {
-    console.error('PATCH /api/admin/mentor-requests/[id]/approve error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

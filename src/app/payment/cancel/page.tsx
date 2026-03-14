@@ -19,7 +19,7 @@ function PaymentCancelContent() {
     ? null  // sẽ gọi API pay lại từ trang mentor dashboard
     : null;
 
-  const backPath = isMentorPayment ? '/mentor/dashboard' : '/customer/bookings';
+  const backPath = isMentorPayment ? '/mentors' : '/upgrade';
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">

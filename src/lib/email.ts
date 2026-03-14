@@ -4,7 +4,7 @@
 import nodemailer from 'nodemailer';
 import { BookingStatus, BookingStatusLabels } from '@/types';
 
-// Email Configuration
+// Email Configuration - Gmail App Password works with port 587 + STARTTLS
 const EMAIL_CONFIG = {
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
@@ -13,13 +13,20 @@ const EMAIL_CONFIG = {
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASSWORD || '',
   },
+  tls: {
+    rejectUnauthorized: true,
+  },
 };
 
-const FROM_EMAIL = process.env.SMTP_FROM || 'noreply@bloodline-dna.vn';
-const FROM_NAME = process.env.SMTP_FROM_NAME || 'Bloodline DNA';
+const FROM_EMAIL = process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@studyhub.vn';
+const FROM_NAME = process.env.SMTP_FROM_NAME || 'StudyHub';
 
-// Create transporter
-const transporter = nodemailer.createTransport(EMAIL_CONFIG);
+// Create transporter - use service 'gmail' when host is Gmail for better compatibility
+const transporter = nodemailer.createTransport(
+  process.env.SMTP_HOST === 'smtp.gmail.com' || !process.env.SMTP_HOST
+    ? { service: 'gmail', auth: EMAIL_CONFIG.auth }
+    : EMAIL_CONFIG
+);
 
 // Email Templates
 export interface EmailTemplate {
@@ -36,7 +43,7 @@ function baseTemplate(content: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bloodline DNA</title>
+  <title>StudyHub</title>
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
     .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
@@ -52,15 +59,15 @@ function baseTemplate(content: string): string {
 <body>
   <div class="container">
     <div class="header">
-      <h1>🧬 Bloodline DNA</h1>
-      <p style="margin: 10px 0 0 0; opacity: 0.9;">Dịch vụ xét nghiệm ADN chuyên nghiệp</p>
+      <h1>📚 StudyHub</h1>
+      <p style="margin: 10px 0 0 0; opacity: 0.9;">Nền tảng học tập cộng đồng</p>
     </div>
     <div class="content">
       ${content}
     </div>
     <div class="footer">
-      <p>© 2024 Bloodline DNA. All rights reserved.</p>
-      <p>Hotline: 1900 xxxx | Email: support@bloodline-dna.vn</p>
+      <p>© 2024 StudyHub. All rights reserved.</p>
+      <p>Email: support@studyhub.vn</p>
       <p style="margin-top: 10px;">
         <a href="#" style="color: #2563eb; text-decoration: none;">Website</a> | 
         <a href="#" style="color: #2563eb; text-decoration: none;">Facebook</a> | 
@@ -96,7 +103,7 @@ export function otpEmailTemplate(otp: string, purpose: 'reset' | 'verify'): Emai
       <p style="margin: 0;">⚠️ <strong>Lưu ý bảo mật:</strong></p>
       <ul style="margin: 10px 0 0 0; padding-left: 20px;">
         <li>Không chia sẻ mã này với bất kỳ ai</li>
-        <li>Bloodline DNA không bao giờ yêu cầu mã OTP qua điện thoại</li>
+        <li>StudyHub không bao giờ yêu cầu mã OTP qua điện thoại</li>
         <li>Nếu bạn không yêu cầu mã này, hãy bỏ qua email</li>
       </ul>
     </div>
@@ -266,7 +273,6 @@ export async function sendEmail(
   try {
     // Check if SMTP is configured
     if (!EMAIL_CONFIG.auth.user || !EMAIL_CONFIG.auth.pass) {
-      console.warn('SMTP not configured, skipping email');
       return { success: false, error: 'SMTP not configured' };
     }
 
@@ -278,13 +284,11 @@ export async function sendEmail(
       html: template.html,
     });
 
-    console.log(`Email sent: ${info.messageId} to ${to}`);
     return { success: true, messageId: info.messageId };
-  } catch (error) {
-    console.error('Email send error:', error);
+  } catch (err) {
     return { 
       success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+      error: err instanceof Error ? err.message : 'Unknown error' 
     };
   }
 }

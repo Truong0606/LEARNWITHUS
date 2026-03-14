@@ -87,8 +87,7 @@ export async function GET(request: NextRequest) {
       message: 'Lấy thông tin thành công',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('GET /api/auth/profile error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
@@ -183,8 +182,7 @@ export async function PUT(request: NextRequest) {
       message: 'Cập nhật thông tin thành công',
       statusCode: 200,
     });
-  } catch (error) {
-    console.error('PUT /api/auth/profile error:', error);
+  } catch {
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

@@ -152,7 +152,7 @@ export default function MentorDashboardPage() {
       });
       const data = await res.json();
       if (data.data?.bookings) setBookings(data.data.bookings);
-    } catch (err) { console.error(err); }
+    } catch {}
     finally { setLoadingBookings(false); }
   }, []);
 
@@ -184,7 +184,7 @@ export default function MentorDashboardPage() {
           bankAccountNumber: p.bankAccountNumber || '',
         });
       }
-    } catch (err) { console.error(err); }
+    } catch {}
   }, []);
 
   useEffect(() => {
@@ -201,7 +201,7 @@ export default function MentorDashboardPage() {
       });
       const data = await res.json();
       if (data.data) setStats(data.data as StatsData);
-    } catch (err) { console.error(err); }
+    } catch {}
     finally { setStatsLoading(false); }
   }, []);
 
@@ -791,6 +791,18 @@ export default function MentorDashboardPage() {
                                     <span className="truncate text-xs font-semibold">{b.topic}</span>
                                   </div>
                                   <p className="mt-0.5 truncate text-[11px] opacity-75">{b.userName || '—'}</p>
+                                  {b.meetingLink && (
+                                    <a
+                                      href={b.meetingLink}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="mt-1 flex items-center gap-1 rounded bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700 hover:bg-blue-200"
+                                    >
+                                      <LinkIcon size={11} />
+                                      Link họp
+                                    </a>
+                                  )}
                                 </div>
                               ))}
                             </td>
