@@ -12,12 +12,38 @@ export function generateId(): string {
   return (ans.toString(16) + randomPart.toString()).toUpperCase();
 }
 
-// Convert Firestore Timestamp to Date
-export function timestampToDate(timestamp: Timestamp | Date | string): Date {
+// Convert Firestore Timestamp-like values to Date
+export function timestampToDate(timestamp: unknown): Date {
   if (timestamp instanceof Timestamp) {
     return timestamp.toDate();
   }
-  return new Date(timestamp);
+
+  if (timestamp instanceof Date) {
+    return timestamp;
+  }
+
+  if (typeof timestamp === 'string' || typeof timestamp === 'number') {
+    return new Date(timestamp);
+  }
+
+  if (timestamp && typeof timestamp === 'object') {
+    if ('toDate' in timestamp && typeof timestamp.toDate === 'function') {
+      return timestamp.toDate();
+    }
+
+    const seconds =
+      'seconds' in timestamp && typeof timestamp.seconds === 'number'
+        ? timestamp.seconds
+        : '_seconds' in timestamp && typeof timestamp._seconds === 'number'
+          ? timestamp._seconds
+          : null;
+
+    if (seconds !== null) {
+      return new Date(seconds * 1000);
+    }
+  }
+
+  return new Date(NaN);
 }
 
 // Convert Date to Firestore Timestamp

@@ -2,6 +2,15 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://studyhub.vn";
+const metadataBase = (() => {
+  try {
+    return new URL(appUrl);
+  } catch {
+    return new URL("https://studyhub.vn");
+  }
+})();
+
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin", "vietnamese"],
@@ -9,6 +18,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase,
   title: {
     default: "StudyHub - Học tập cộng đồng",
     template: "%s | StudyHub",
@@ -29,7 +39,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "vi_VN",
-    url: "https://studyhub.vn",
+    url: appUrl,
     siteName: "StudyHub",
     title: "StudyHub - Học tập cộng đồng",
     description:
