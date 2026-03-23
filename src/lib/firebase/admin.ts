@@ -43,7 +43,8 @@ function initializeFirebaseAdmin() {
         });
         return;
       }
-    } catch {
+    } catch (error) {
+      console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT:', error);
     }
   }
 
@@ -66,8 +67,8 @@ function initializeFirebaseAdmin() {
         });
         return;
       }
-    } catch {
-      // serviceAccountKey.json not available
+    } catch (error) {
+      console.error('Failed to initialize Firebase Admin from serviceAccountKey.json:', error);
     }
   }
 
@@ -92,7 +93,8 @@ function initializeFirebaseAdmin() {
       credential: admin.credential.cert({ projectId, clientEmail, privateKey } as admin.ServiceAccount),
       storageBucket,
     });
-  } catch {
+  } catch (error) {
+    console.error('Failed to initialize Firebase Admin from split env vars:', error);
   }
 }
 

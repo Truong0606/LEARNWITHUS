@@ -83,7 +83,8 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
 
-  } catch {
+  } catch (error) {
+    console.error('Register API error:', error);
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
