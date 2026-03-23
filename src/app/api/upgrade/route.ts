@@ -1,5 +1,5 @@
-﻿// POST /api/upgrade - Táº¡o link thanh toÃ¡n PayOS Ä‘á»ƒ nÃ¢ng cáº¥p VIP
-// GET  /api/upgrade - Láº¥y tráº¡ng thÃ¡i VIP hiá»‡n táº¡i cá»§a user
+﻿// POST /api/upgrade - Tạo link thanh toán PayOS để nâng cấp VIP
+// GET  /api/upgrade - Lấy trạng thái VIP hiện tại của user
 
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, COLLECTIONS } from '@/lib/firebase/admin';
@@ -9,13 +9,13 @@ import { createPaymentLink, generateOrderCode, getPaymentInfo } from '@/lib/payo
 import { ApiResponse, PaymentStatus, VipPlanId, VIP_PLANS, User } from '@/types';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 
-// GET - Láº¥y tráº¡ng thÃ¡i VIP cá»§a user hiá»‡n táº¡i
+// GET - Lấy trạng thái VIP của user hiện tại
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json<ApiResponse<null>>(
-        { data: null, message: 'Vui lÃ²ng Ä‘Äƒng nháº­p', statusCode: 401 },
+        { data: null, message: 'Vui lòng đăng nhập', statusCode: 401 },
         { status: 401 }
       );
     }
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const payload = verifyToken(authHeader.split(' ')[1]);
     if (!payload) {
       return NextResponse.json<ApiResponse<null>>(
-        { data: null, message: 'Token khÃ´ng há»£p lá»‡', statusCode: 401 },
+        { data: null, message: 'Token không hợp lệ', statusCode: 401 },
         { status: 401 }
       );
     }
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     const userDoc = await adminDb.collection(COLLECTIONS.users).doc(payload.userId).get();
     if (!userDoc.exists) {
       return NextResponse.json<ApiResponse<null>>(
-        { data: null, message: 'KhÃ´ng tÃ¬m tháº¥y ngÆ°á»i dÃ¹ng', statusCode: 404 },
+        { data: null, message: 'Không tìm thấy người dùng', statusCode: 404 },
         { status: 404 }
       );
     }
@@ -65,19 +65,19 @@ export async function GET(request: NextRequest) {
     );
   } catch {
     return NextResponse.json<ApiResponse<null>>(
-      { data: null, message: 'Lá»—i mÃ¡y chá»§', statusCode: 500 },
+      { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
     );
   }
 }
 
-// POST - Táº¡o link thanh toÃ¡n PayOS Ä‘á»ƒ nÃ¢ng cáº¥p VIP
+// POST - Tạo link thanh toán PayOS để nâng cấp VIP
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json<ApiResponse<null>>(
-        { data: null, message: 'Vui lÃ²ng Ä‘Äƒng nháº­p', statusCode: 401 },
+        { data: null, message: 'Vui lòng đăng nhập', statusCode: 401 },
         { status: 401 }
       );
     }
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     const payload = verifyToken(authHeader.split(' ')[1]);
     if (!payload) {
       return NextResponse.json<ApiResponse<null>>(
-        { data: null, message: 'Token khÃ´ng há»£p lá»‡', statusCode: 401 },
+        { data: null, message: 'Token không hợp lệ', statusCode: 401 },
         { status: 401 }
       );
     }
@@ -95,18 +95,18 @@ export async function POST(request: NextRequest) {
 
     if (!planId || !VIP_PLANS[planId]) {
       return NextResponse.json<ApiResponse<null>>(
-        { data: null, message: 'GÃ³i VIP khÃ´ng há»£p lá»‡', statusCode: 400 },
+        { data: null, message: 'Gói VIP không hợp lệ', statusCode: 400 },
         { status: 400 }
       );
     }
 
     const plan = VIP_PLANS[planId];
 
-    // Kiá»ƒm tra VIP hiá»‡n táº¡i
+    // Kiểm tra VIP hiện tại
     const userDoc = await adminDb.collection(COLLECTIONS.users).doc(payload.userId).get();
     if (!userDoc.exists) {
       return NextResponse.json<ApiResponse<null>>(
-        { data: null, message: 'KhÃ´ng tÃ¬m tháº¥y ngÆ°á»i dÃ¹ng', statusCode: 404 },
+        { data: null, message: 'Không tìm thấy người dùng', statusCode: 404 },
         { status: 404 }
       );
     }
@@ -123,14 +123,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json<ApiResponse<null>>(
         {
           data: null,
-          message: `Báº¡n Ä‘ang cÃ³ gÃ³i VIP ${user.vipPlan} cÃ²n hiá»‡u lá»±c Ä‘áº¿n ${vipExpiresAt.toLocaleDateString('vi-VN')}`,
+          message: `Bạn đang có gói VIP ${user.vipPlan} còn hiệu lực đến ${vipExpiresAt.toLocaleDateString('vi-VN')}`,
           statusCode: 400,
         },
         { status: 400 }
       );
     }
 
-    // Kiá»ƒm tra payment Ä‘ang pending Ä‘á»ƒ trÃ¡nh táº¡o trÃ¹ng
+    // Kiểm tra payment đang pending để tránh tạo trùng
     const existingPayment = await adminDb
       .collection(COLLECTIONS.payments)
       .where('userId', '==', payload.userId)
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
       const existing = existingDoc.data();
 
       // Verify with PayOS whether the order is still active (PENDING)
-      // If user cancelled it on PayOS side, our Firestore record is stale â†’ create fresh order
+      // If user cancelled it on PayOS side, our Firestore record is stale → create fresh order
       let payosStillPending = false;
       try {
         const payosInfo = await getPaymentInfo(existing.orderCode as number);
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
       }
 
       if (payosStillPending) {
-        // Order is still open on PayOS â€” return the existing checkout URL
+        // Order is still open on PayOS — return the existing checkout URL
         return NextResponse.json<ApiResponse<{
           paymentId: string;
           checkoutUrl: string;
@@ -174,14 +174,14 @@ export async function POST(request: NextRequest) {
               planName: plan.name,
               isExisting: true,
             },
-            message: 'ÄÃ£ cÃ³ yÃªu cáº§u thanh toÃ¡n Ä‘ang chá» xá»­ lÃ½',
+            message: 'Đã có yêu cầu thanh toán đang chờ xử lý',
             statusCode: 200,
           },
           { status: 200 }
         );
       }
 
-      // Order was cancelled/expired on PayOS â€” mark our record as Cancelled and create a new one
+      // Order was cancelled/expired on PayOS — mark our record as Cancelled and create a new one
       await existingDoc.ref.update({
         status: PaymentStatus.Cancelled,
         updatedAt: FieldValue.serverTimestamp(),
@@ -205,7 +205,7 @@ export async function POST(request: NextRequest) {
       cancelUrl,
       items: [
         {
-          name: `GÃ³i VIP ${plan.name} - Learn With Us`,
+          name: `Gói VIP ${plan.name} - Learn With Us`,
           quantity: 1,
           price: plan.price,
         },
@@ -214,12 +214,12 @@ export async function POST(request: NextRequest) {
 
     if (payosResponse.code !== '00') {
       return NextResponse.json<ApiResponse<null>>(
-        { data: null, message: `Lá»—i táº¡o thanh toÃ¡n: ${payosResponse.desc}`, statusCode: 400 },
+        { data: null, message: `Lỗi tạo thanh toán: ${payosResponse.desc}`, statusCode: 400 },
         { status: 400 }
       );
     }
 
-    // LÆ°u payment vÃ o Firestore
+    // Lưu payment vào Firestore
     const paymentId = await createDocument(COLLECTIONS.payments, {
       orderCode,
       amount: plan.price,
@@ -249,14 +249,14 @@ export async function POST(request: NextRequest) {
           planName: plan.name,
           isExisting: false,
         },
-        message: 'Táº¡o link thanh toÃ¡n thÃ nh cÃ´ng',
+        message: 'Tạo link thanh toán thành công',
         statusCode: 201,
       },
       { status: 201 }
     );
   } catch {
     return NextResponse.json<ApiResponse<null>>(
-      { data: null, message: 'Lá»—i mÃ¡y chá»§', statusCode: 500 },
+      { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
     );
   }

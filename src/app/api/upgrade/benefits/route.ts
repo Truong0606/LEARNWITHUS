@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
     });
   } catch {
     return NextResponse.json<ApiResponse<null>>(
-      { data: null, message: 'Lá»—i mÃ¡y chá»§', statusCode: 500 },
+      { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }
     );
   }
@@ -111,18 +111,18 @@ export async function GET(request: NextRequest) {
 
 function buildFeatureList(plan: typeof VIP_PLANS[keyof typeof VIP_PLANS]): string[] {
   const base = [
-    `${plan.freeSessionsPerMonth} buá»•i Mentor miá»…n phÃ­/thÃ¡ng`,
-    `Giáº£m ${plan.discountPercent}% khi háº¿t buá»•i miá»…n phÃ­`,
-    'Huy hiá»‡u VIP trÃªn cá»™ng Ä‘á»“ng',
-    'Æ¯u tiÃªn há»— trá»£ tá»« Ä‘á»™i ngÅ© Learn With Us',
-    'Truy cáº­p táº¥t cáº£ tÃ i liá»‡u há»c táº­p',
+    `${plan.freeSessionsPerMonth} buổi Mentor miễn phí/tháng`,
+    `Giảm ${plan.discountPercent}% khi hết buổi miễn phí`,
+    'Huy hiệu VIP trên cộng đồng',
+    'Ưu tiên hỗ trợ từ đội ngũ Learn With Us',
+    'Truy cập tất cả tài liệu học tập',
   ];
   if (plan.id === 'quarterly') {
-    base.push('Tiáº¿t kiá»‡m so vá»›i gÃ³i thÃ¡ng');
+    base.push('Tiết kiệm so với gói tháng');
   }
   if (plan.id === 'yearly') {
-    base.push('Tiáº¿t kiá»‡m nhiá»u nháº¥t');
-    base.push('Táº·ng 1 buá»•i Mentor miá»…n phÃ­/thÃ¡ng');
+    base.push('Tiết kiệm nhiều nhất');
+    base.push('Tặng 1 buổi Mentor miễn phí/tháng');
   }
   return base;
 }
