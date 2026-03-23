@@ -2,8 +2,8 @@ import { Footer, Header } from "@/components/shared";
 import { Target, Eye, Heart, Lightbulb } from "lucide-react";
 
 export const metadata = {
-  title: "Giới thiệu | StudyHub",
-  description: "Giới thiệu về StudyHub và sứ mệnh kết nối cộng đồng học tập sinh viên.",
+  title: "Giới thiệu | Learn With Us",
+  description: "Giới thiệu về Learn With Us và sứ mệnh kết nối cộng đồng học tập sinh viên.",
 };
 
 const values = [
@@ -32,21 +32,21 @@ export default function AboutPage() {
       <Header />
       <main>
         {/* Hero */}
-        <section className="py-16 md:py-20 bg-studyhub-hero">
+        <section className="py-16 md:py-20 bg-learnwithus-hero">
           <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8 text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 text-sm font-medium text-violet-700 bg-violet-100 rounded-full">
               <Lightbulb size={16} className="text-amber-500" />
               Về chúng tôi
             </div>
             <h1 className="mb-4 text-3xl font-bold text-gray-800 md:text-4xl lg:text-5xl">
-              StudyHub -{" "}
+              Learn With Us -{" "}
               <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
                 Học cùng nhau
               </span>
               , tiến xa hơn
             </h1>
             <p className="max-w-3xl mx-auto text-gray-600 md:text-lg">
-              StudyHub giúp sinh viên tạo hồ sơ học tập, tìm nhóm phù hợp, thảo luận
+              Learn With Us giúp sinh viên tạo hồ sơ học tập, tìm nhóm phù hợp, thảo luận
               trên diễn đàn và nhận hỗ trợ từ mentor để tối ưu hiệu quả học tập.
             </p>
           </div>
@@ -78,7 +78,7 @@ export default function AboutPage() {
           <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="mb-4 text-2xl font-bold text-gray-800 md:text-3xl">
-                StudyHub{" "}
+                Learn With Us{" "}
                 <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
                   hoạt động
                 </span>{" "}

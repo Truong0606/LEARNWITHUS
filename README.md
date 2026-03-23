@@ -1,4 +1,4 @@
-# StudyHub Next.js
+# Learn With Us Next.js
 
 Nền tảng học tập cộng đồng cho sinh viên: tạo hồ sơ học tập, tham gia nhóm theo môn, thảo luận trên diễn đàn, sử dụng Pomodoro và đăng ký mentor.
 

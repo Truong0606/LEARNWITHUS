@@ -55,7 +55,7 @@ export default function FAQSection() {
             </span>
           </h2>
           <p className="max-w-2xl mx-auto text-gray-600">
-            Giải đáp những thắc mắc phổ biến về StudyHub
+            Giải đáp những thắc mắc phổ biến về Learn With Us
           </p>
         </div>
         <div className="max-w-3xl mx-auto">

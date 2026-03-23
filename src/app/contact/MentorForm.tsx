@@ -23,7 +23,7 @@ export default function MentorForm() {
 
     setLoading(true);
     try {
-      const res = await fetch('/api/mentor', {
+      const res = await fetch('/api/mentor-bookings', { // Updated to actual endpoint
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -86,7 +86,7 @@ export default function MentorForm() {
             type="text"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="w-full px-4 py-3 text-sm border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+            className="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
             placeholder="Nguyễn Văn A"
           />
         </div>
@@ -98,8 +98,8 @@ export default function MentorForm() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-3 text-sm border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-            placeholder="email@studyhub.vn"
+            className="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
+            placeholder="email@example.com"
           />
         </div>
         <div>
@@ -110,7 +110,7 @@ export default function MentorForm() {
             type="text"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            className="w-full px-4 py-3 text-sm border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+            className="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent"
             placeholder="VD: Lập trình Web"
           />
         </div>
@@ -121,7 +121,7 @@ export default function MentorForm() {
           <textarea
             value={goal}
             onChange={(e) => setGoal(e.target.value)}
-            className="w-full px-4 py-3 text-sm border border-pink-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent min-h-[120px] resize-none"
+            className="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent min-h-[120px] resize-none"
             placeholder="Mô tả mục tiêu của bạn..."
           />
         </div>
@@ -133,7 +133,7 @@ export default function MentorForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full inline-flex items-center justify-center gap-2 py-3 text-sm font-semibold text-white bg-gradient-to-r from-violet-500 to-pink-500 rounded-xl hover:shadow-lg hover:shadow-pink-200 transition-all disabled:opacity-70"
+          className="w-full inline-flex items-center justify-center gap-2 py-3 text-sm font-semibold text-white bg-slate-800 rounded-xl hover:bg-slate-700 transition-all disabled:opacity-70"
         >
           {loading ? (
             <>

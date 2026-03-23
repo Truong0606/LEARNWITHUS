@@ -102,7 +102,7 @@ export default function UpgradePage() {
             Mở khóa toàn bộ tiềm năng học tập
           </h1>
           <p className="max-w-2xl mx-auto text-gray-600">
-            VIP giúp bạn tận dụng tối đa StudyHub với mentor miễn phí, nhóm học đặc biệt và nhiều ưu đãi khác.
+            VIP giúp bạn tận dụng tối đa Learn With Us với mentor miễn phí, nhóm học đặc biệt và nhiều ưu đãi khác.
           </p>
         </section>
 
@@ -171,35 +171,6 @@ export default function UpgradePage() {
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="text-center">
-          <button
-            onClick={handleUpgrade}
-            disabled={loading}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-slate-600 to-slate-800 px-8 py-4 font-semibold text-white shadow-lg transition-all hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <>
-                <Loader2 size={20} className="animate-spin" />
-                Đang xử lý...
-              </>
-            ) : (
-              <>
-                Nâng cấp {selectedPlanData.name} — {formatPrice(selectedPlanData.price)}
-                <ArrowRight size={20} />
-              </>
-            )}
-          </button>
-          <p className="mt-4 text-sm text-gray-500">
-            Thanh toán an toàn qua PayOS
-          </p>
-          {!token && (
-            <p className="mt-2 text-sm text-amber-600 font-medium">
-              Bạn cần đăng nhập trước khi nâng cấp
-            </p>
-          )}
-        </div>
-
         {/* FAQ */}
         <div className="mt-16 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
           <h3 className="mb-6 font-semibold text-gray-800">Câu hỏi thường gặp</h3>
@@ -208,12 +179,6 @@ export default function UpgradePage() {
               <p className="font-medium text-gray-800">2 buổi Mentor miễn phí được tính thế nào?</p>
               <p className="mt-1 text-sm text-gray-600">
                 Mỗi tháng bạn được đặt 2 buổi tư vấn với bất kỳ mentor nào mà không mất phí. Không dùng hết sẽ không chuyển sang tháng sau.
-              </p>
-            </div>
-            <div>
-              <p className="font-medium text-gray-800">Có thể hủy gói VIP không?</p>
-              <p className="mt-1 text-sm text-gray-600">
-                Có. Bạn có thể hủy bất kỳ lúc nào. Quyền lợi VIP sẽ duy trì đến hết kỳ đã thanh toán.
               </p>
             </div>
           </div>

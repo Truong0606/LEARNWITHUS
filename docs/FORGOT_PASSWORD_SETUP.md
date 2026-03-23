@@ -13,8 +13,8 @@ SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=your-email@gmail.com
 SMTP_PASSWORD=your-app-password
-SMTP_FROM=noreply@studyhub.vn
-SMTP_FROM_NAME=StudyHub
+SMTP_FROM=noreply@learnwithus.vn
+SMTP_FROM_NAME=Learn With Us
 ```
 
 ## 2. Cấu hình Gmail (nếu dùng Gmail)

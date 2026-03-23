@@ -1,4 +1,4 @@
-// POST /api/upgrade - Tạo link thanh toán PayOS để nâng cấp VIP
+﻿// POST /api/upgrade - Tạo link thanh toán PayOS để nâng cấp VIP
 // GET  /api/upgrade - Lấy trạng thái VIP hiện tại của user
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -205,7 +205,7 @@ export async function POST(request: NextRequest) {
       cancelUrl,
       items: [
         {
-          name: `Gói VIP ${plan.name} - StudyHub`,
+          name: `Gói VIP ${plan.name} - Learn With Us`,
           quantity: 1,
           price: plan.price,
         },
@@ -261,3 +261,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

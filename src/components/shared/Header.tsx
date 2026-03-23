@@ -132,7 +132,7 @@ export default function Header() {
               <GraduationCap size={24} className="text-white" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
-              StudyHub
+              Learn With Us
             </span>
           </Link>
 

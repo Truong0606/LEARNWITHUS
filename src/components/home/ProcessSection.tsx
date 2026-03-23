@@ -46,7 +46,7 @@ export default function ProcessSection() {
           <h2 className="mb-4 text-2xl font-bold text-gray-800 md:text-3xl">
             Hành trình học tập cùng{" "}
             <span className="bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
-              StudyHub
+              Learn With Us
             </span>
           </h2>
           <p className="max-w-2xl mx-auto text-gray-600">

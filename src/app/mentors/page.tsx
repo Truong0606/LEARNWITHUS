@@ -156,7 +156,7 @@ export default function MentorsPage() {
               Cộng đồng Mentor
             </h1>
             <p className="max-w-2xl mx-auto text-lg text-slate-300 md:text-xl">
-              Tiến nhanh và xa hơn trong hành trình học tập cùng StudyHub
+              Tiến nhanh và xa hơn trong hành trình học tập cùng Learn With Us
             </p>
           </div>
         </section>

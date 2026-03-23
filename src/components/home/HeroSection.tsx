@@ -3,7 +3,7 @@ import { BookOpenCheck, Sparkles, Timer, Users } from "lucide-react";
 
 export default function HeroSection() {
   return (
-    <section className="relative py-20 overflow-hidden md:py-24 bg-studyhub-hero">
+    <section className="relative py-20 overflow-hidden md:py-24 bg-learnwithus-hero">
       {/* Decorative blobs */}
       <div className="absolute top-20 left-10 w-72 h-72 bg-slate-300 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse" />
       <div className="absolute bottom-20 right-10 w-72 h-72 bg-slate-400 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse" />

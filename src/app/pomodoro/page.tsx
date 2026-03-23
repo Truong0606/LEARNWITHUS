@@ -221,8 +221,8 @@ export default function PomodoroPage() {
   // Update document title with timer
   useEffect(() => {
     document.title = isRunning
-      ? `${formatTime(timeLeft)} - ${MODE_LABELS[mode]} | StudyHub`
-      : 'Pomodoro Timer | StudyHub';
+      ? `${formatTime(timeLeft)} - ${MODE_LABELS[mode]} | Learn With Us`
+      : 'Pomodoro Timer | Learn With Us';
   }, [timeLeft, isRunning, mode]);
 
   // Get colors based on mode

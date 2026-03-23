@@ -165,7 +165,7 @@ export default function RegisterPage() {
           </div>
           <h2 className="mb-4 text-2xl font-bold text-gray-800">Đăng Ký Thành Công!</h2>
           <p className="mb-6 text-gray-600">
-            Chào mừng bạn đến với StudyHub! 
+            Chào mừng bạn đến với Learn With Us! 
             Bạn sẽ được chuyển đến trang đăng nhập...
           </p>
           <Link
@@ -202,7 +202,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <h1 className="mb-4 text-4xl font-bold">Tham Gia StudyHub</h1>
+          <h1 className="mb-4 text-4xl font-bold">Tham Gia Learn With Us</h1>
           <p className="mb-8 text-xl text-white/80">
             Bắt đầu hành trình học tập hiệu quả cùng cộng đồng sinh viên
           </p>
@@ -265,7 +265,7 @@ export default function RegisterPage() {
                 <GraduationCap size={24} className="text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
-                StudyHub
+                Learn With Us
               </span>
             </Link>
           </div>
@@ -457,7 +457,7 @@ export default function RegisterPage() {
                   <a href="#" className="font-medium text-slate-600 hover:underline">
                     Chính sách bảo mật
                   </a>{' '}
-                  của StudyHub
+                  của Learn With Us
                 </span>
               </label>
               {errors.terms && (

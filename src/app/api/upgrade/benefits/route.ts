@@ -1,4 +1,4 @@
-// GET /api/upgrade/benefits - Get VIP benefits and current user's VIP session usage
+﻿// GET /api/upgrade/benefits - Get VIP benefits and current user's VIP session usage
 
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, COLLECTIONS } from '@/lib/firebase/admin';
@@ -114,7 +114,7 @@ function buildFeatureList(plan: typeof VIP_PLANS[keyof typeof VIP_PLANS]): strin
     `${plan.freeSessionsPerMonth} buổi Mentor miễn phí/tháng`,
     `Giảm ${plan.discountPercent}% khi hết buổi miễn phí`,
     'Huy hiệu VIP trên cộng đồng',
-    'Ưu tiên hỗ trợ từ đội ngũ StudyHub',
+    'Ưu tiên hỗ trợ từ đội ngũ Learn With Us',
     'Truy cập tất cả tài liệu học tập',
   ];
   if (plan.id === 'quarterly') {
@@ -126,3 +126,4 @@ function buildFeatureList(plan: typeof VIP_PLANS[keyof typeof VIP_PLANS]): strin
   }
   return base;
 }
+

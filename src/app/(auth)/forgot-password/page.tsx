@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -126,7 +126,7 @@ export default function ForgotPasswordPage() {
           </div>
           <h2 className="mb-4 text-2xl font-bold text-gray-800">Đặt Lại Mật Khẩu Thành Công!</h2>
           <p className="mb-6 text-gray-600">
-            Mật khẩu của bạn đã được cập nhật. Đang chuyển hướng đến trang đăng nhập sau {countdown} giây...
+            Mật khẩu của bạn Ä‘ã được cập nhật. Đang chuyển hướng đến trang đăng nhập sau {countdown} giây...
           </p>
           <Link
             href="/login"
@@ -178,7 +178,7 @@ export default function ForgotPasswordPage() {
                 <GraduationCap size={24} className="text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
-                StudyHub
+                Learn With Us
               </span>
             </Link>
           </div>
@@ -194,7 +194,7 @@ export default function ForgotPasswordPage() {
             <p className="text-gray-600">
               {step === 'email' 
                 ? 'Nhập email để nhận mã khôi phục' 
-                : `Chúng tôi đã gửi mã OTP đến ${email}`}
+                : `Chúng tôi Ä‘ã gửi mã OTP đến ${email}`}
             </p>
           </div>
 
@@ -328,3 +328,4 @@ export default function ForgotPasswordPage() {
     </div>
   );
 }
+
