@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -17,17 +17,17 @@ import toast from 'react-hot-toast';
 import { VIP_PLANS, type VipPlanId } from '@/types';
 
 const vipBenefits = [
-  { icon: GraduationCap, text: '2 buá»•i Mentor miá»…n phÃ­ má»—i thÃ¡ng' },
-  { icon: Crown, text: 'Badge VIP trÃªn profile vÃ  bÃ i viáº¿t' },
-  { icon: MessageSquare, text: 'Æ¯u tiÃªn há»— trá»£ tá»« Ä‘á»™i ngÅ©' },
-  { icon: Zap, text: 'Truy cáº­p nhÃ³m há»c premium' },
-  { icon: Sparkles, text: 'Thá»‘ng kÃª Pomodoro nÃ¢ng cao' },
+  { icon: GraduationCap, text: '2 buổi Mentor miễn phí mỗi tháng' },
+  { icon: Crown, text: 'Badge VIP trên profile và bài viết' },
+  { icon: MessageSquare, text: 'Ưu tiên hỗ trợ từ đội ngũ' },
+  { icon: Zap, text: 'Truy cập nhóm học premium' },
+  { icon: Sparkles, text: 'Thống kê Pomodoro nâng cao' },
 ];
 
 const plans = [
-  { id: 'monthly' as const, name: VIP_PLANS.monthly.name, price: VIP_PLANS.monthly.price, period: 'thÃ¡ng', popular: false, savings: null as string | null },
-  { id: 'quarterly' as const, name: VIP_PLANS.quarterly.name, price: VIP_PLANS.quarterly.price, period: '3 thÃ¡ng', popular: true, savings: 'Tiáº¿t kiá»‡m 16%' },
-  { id: 'yearly' as const, name: VIP_PLANS.yearly.name, price: VIP_PLANS.yearly.price, period: 'nÄƒm', popular: false, savings: 'Tiáº¿t kiá»‡m 33%' },
+  { id: 'monthly' as const, name: VIP_PLANS.monthly.name, price: VIP_PLANS.monthly.price, period: 'tháng', popular: false, savings: null as string | null },
+  { id: 'quarterly' as const, name: VIP_PLANS.quarterly.name, price: VIP_PLANS.quarterly.price, period: '3 tháng', popular: true, savings: 'Tiết kiệm 16%' },
+  { id: 'yearly' as const, name: VIP_PLANS.yearly.name, price: VIP_PLANS.yearly.price, period: 'năm', popular: false, savings: 'Tiết kiệm 33%' },
 ] as const;
 
 type PlanId = VipPlanId;
@@ -49,7 +49,7 @@ export default function UpgradePage() {
 
   const handleUpgrade = async () => {
     if (!token) {
-      toast.error('Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ nÃ¢ng cáº¥p VIP');
+      toast.error('Vui lòng đăng nhập để nâng cấp VIP');
       router.push('/login?redirect=/upgrade');
       return;
     }
@@ -68,20 +68,20 @@ export default function UpgradePage() {
       const json = await res.json();
 
       if (!res.ok) {
-        toast.error(json.message || 'KhÃ´ng thá»ƒ táº¡o thanh toÃ¡n');
+        toast.error(json.message || 'Không thể tạo thanh toán');
         return;
       }
 
       const { checkoutUrl } = json.data;
       if (!checkoutUrl) {
-        toast.error('KhÃ´ng nháº­n Ä‘Æ°á»£c link thanh toÃ¡n');
+        toast.error('Không nhận được link thanh toán');
         return;
       }
 
-      // Chuyá»ƒn hÆ°á»›ng Ä‘áº¿n trang thanh toÃ¡n PayOS
+      // Chuyển hướng đến trang thanh toán PayOS
       window.location.href = checkoutUrl;
     } catch {
-      toast.error('Lá»—i káº¿t ná»‘i, vui lÃ²ng thá»­ láº¡i');
+      toast.error('Lỗi kết nối, vui lòng thử lại');
     } finally {
       setLoading(false);
     }
@@ -96,20 +96,20 @@ export default function UpgradePage() {
         <section className="mb-12 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 mb-4 text-sm font-medium text-amber-700 bg-amber-100 rounded-full">
             <Crown size={16} className="text-amber-600" />
-            NÃ¢ng cáº¥p VIP
+            Nâng cấp VIP
           </div>
           <h1 className="mb-3 text-3xl font-bold text-gray-800 md:text-4xl">
-            Má»Ÿ khÃ³a toÃ n bá»™ tiá»m nÄƒng há»c táº­p
+            Mở khóa toàn bộ tiềm năng học tập
           </h1>
           <p className="max-w-2xl mx-auto text-gray-600">
-            VIP giÃºp báº¡n táº­n dá»¥ng tá»‘i Ä‘a Learn With Us vá»›i mentor miá»…n phÃ­, nhÃ³m há»c Ä‘áº·c biá»‡t vÃ  nhiá»u Æ°u Ä‘Ã£i khÃ¡c.
+            VIP giúp bạn tận dụng tối đa Learn With Us với mentor miễn phí, nhóm học đặc biệt và nhiều ưu đãi khác.
           </p>
         </section>
 
         {/* Benefits */}
         <div className="mb-12 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
           <h3 className="mb-6 text-center font-semibold text-gray-800">
-            Quyá»n lá»£i thÃ nh viÃªn VIP
+            Quyền lợi thành viên VIP
           </h3>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {vipBenefits.map((item) => (
@@ -129,7 +129,7 @@ export default function UpgradePage() {
         {/* Pricing */}
         <div className="mb-12">
           <h3 className="mb-6 text-center font-semibold text-gray-800">
-            Chá»n gÃ³i phÃ¹ há»£p
+            Chọn gói phù hợp
           </h3>
           <div className="grid gap-6 sm:grid-cols-3">
             {plans.map((plan) => (
@@ -144,7 +144,7 @@ export default function UpgradePage() {
               >
                 {plan.popular && (
                   <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-slate-600 px-3 py-1 text-xs font-semibold text-white">
-                    Phá»• biáº¿n
+                    Phổ biến
                   </span>
                 )}
                 <div className="flex items-center gap-2">
@@ -171,49 +171,14 @@ export default function UpgradePage() {
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="text-center">
-          <button
-            onClick={handleUpgrade}
-            disabled={loading}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-slate-600 to-slate-800 px-8 py-4 font-semibold text-white shadow-lg transition-all hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <>
-                <Loader2 size={20} className="animate-spin" />
-                Äang xá»­ lÃ½...
-              </>
-            ) : (
-              <>
-                NÃ¢ng cáº¥p {selectedPlanData.name} â€” {formatPrice(selectedPlanData.price)}
-                <ArrowRight size={20} />
-              </>
-            )}
-          </button>
-          <p className="mt-4 text-sm text-gray-500">
-            Thanh toÃ¡n an toÃ n qua PayOS
-          </p>
-          {!token && (
-            <p className="mt-2 text-sm text-amber-600 font-medium">
-              Báº¡n cáº§n Ä‘Äƒng nháº­p trÆ°á»›c khi nÃ¢ng cáº¥p
-            </p>
-          )}
-        </div>
-
         {/* FAQ */}
         <div className="mt-16 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
-          <h3 className="mb-6 font-semibold text-gray-800">CÃ¢u há»i thÆ°á»ng gáº·p</h3>
+          <h3 className="mb-6 font-semibold text-gray-800">Câu hỏi thường gặp</h3>
           <div className="space-y-4">
             <div>
-              <p className="font-medium text-gray-800">2 buá»•i Mentor miá»…n phÃ­ Ä‘Æ°á»£c tÃ­nh tháº¿ nÃ o?</p>
+              <p className="font-medium text-gray-800">2 buổi Mentor miễn phí được tính thế nào?</p>
               <p className="mt-1 text-sm text-gray-600">
-                Má»—i thÃ¡ng báº¡n Ä‘Æ°á»£c Ä‘áº·t 2 buá»•i tÆ° váº¥n vá»›i báº¥t ká»³ mentor nÃ o mÃ  khÃ´ng máº¥t phÃ­. KhÃ´ng dÃ¹ng háº¿t sáº½ khÃ´ng chuyá»ƒn sang thÃ¡ng sau.
-              </p>
-            </div>
-            <div>
-              <p className="font-medium text-gray-800">CÃ³ thá»ƒ há»§y gÃ³i VIP khÃ´ng?</p>
-              <p className="mt-1 text-sm text-gray-600">
-                CÃ³. Báº¡n cÃ³ thá»ƒ há»§y báº¥t ká»³ lÃºc nÃ o. Quyá»n lá»£i VIP sáº½ duy trÃ¬ Ä‘áº¿n háº¿t ká»³ Ä‘Ã£ thanh toÃ¡n.
+                Mỗi tháng bạn được đặt 2 buổi tư vấn với bất kỳ mentor nào mà không mất phí. Không dùng hết sẽ không chuyển sang tháng sau.
               </p>
             </div>
           </div>
@@ -224,4 +189,3 @@ export default function UpgradePage() {
     </div>
   );
 }
-

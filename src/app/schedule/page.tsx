@@ -62,7 +62,7 @@ function formatWeekRange(monday: Date): string {
   sun.setDate(sun.getDate() + 6);
   const fmt = (d: Date) =>
     d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
-  return `${fmt(monday)} – ${fmt(sun)}`;
+  return `${fmt(monday)} - ${fmt(sun)}`;
 }
 
 function getDayDate(monday: Date, dayIndex: number): string {
@@ -303,7 +303,7 @@ export default function SchedulePage() {
                             <div
                               key={b.id}
                               className={`group relative mb-1 rounded-lg border-l-[3px] px-2 py-1.5 ${statusColors[b.status] || 'border-gray-200 bg-gray-50'}`}
-                              title={`${b.topic} — ${b.mentorName} (${statusLabels[b.status] || b.status})`}
+                              title={`${b.topic} - ${b.mentorName} (${statusLabels[b.status] || b.status})`}
                             >
                               <div className="flex items-center gap-1">
                                 {b.type === 'session' ? (
@@ -318,12 +318,11 @@ export default function SchedulePage() {
                               <p className="mt-0.5 truncate text-[11px] opacity-75">
                                 {b.mentorName}
                               </p>
-                              {b.meetingLink && ['paid', 'completed'].includes(b.status) && (
+                              {b.meetingLink && ['paid', 'confirmed', 'completed'].includes(b.status) && (
                                 <a
                                   href={b.meetingLink}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
                                   className="mt-1 flex items-center gap-1 rounded bg-blue-100 px-2 py-0.5 text-[11px] font-medium text-blue-700 hover:bg-blue-200"
                                 >
                                   <ExternalLink size={11} />
@@ -374,10 +373,6 @@ export default function SchedulePage() {
             Hoàn thành
           </span>
         </div>
-
-        <p className="mt-4 text-xs text-gray-500">
-          Buổi tư vấn hoàn thành: bạn có thể đánh giá. Buổi học cùng: mentor sẽ đánh dấu hoàn thành.
-        </p>
       </main>
 
       {/* Review Modal */}
@@ -428,18 +423,6 @@ export default function SchedulePage() {
                 className="w-full resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-500"
               />
             </div>
-
-            {reviewMsg && (
-              <p
-                className={`mb-3 text-sm ${
-                  reviewMsg.includes('thành công')
-                    ? 'text-emerald-600'
-                    : 'text-red-500'
-                }`}
-              >
-                {reviewMsg}
-              </p>
-            )}
 
             <div className="flex gap-3">
               <button
