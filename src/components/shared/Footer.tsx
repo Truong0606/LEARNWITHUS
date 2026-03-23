@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-10 md:grid-cols-3">
           <div>
             <h2 className="mb-4 text-2xl font-bold text-white">
-              StudyHub
+              Learn With Us
             </h2>
             <p className="text-sm leading-relaxed text-white/80">
               Nền tảng học tập cộng đồng giúp sinh viên kết nối, trao đổi và
@@ -71,7 +71,7 @@ export default function Footer() {
             <ul className="space-y-3 text-sm text-white/80">
               <li className="flex items-start gap-2">
                 <Mail className="text-amber-300 flex-shrink-0" size={16} />
-                <span>support@studyhub.vn</span>
+                <span>support@learnwithus.vn</span>
               </li>
               <li className="flex items-start gap-2">
                 <Phone className="text-amber-300 flex-shrink-0" size={16} />
@@ -86,7 +86,7 @@ export default function Footer() {
         </div>
 
         <div className="pt-8 mt-12 text-sm text-center text-white/70 border-t border-white/20">
-          © 2026 StudyHub.
+          © 2026 Learn With Us.
           <p className="flex justify-center gap-4 pt-2">
             <span className="text-amber-300">Kết nối</span>
             <span className="text-white/50">–</span>

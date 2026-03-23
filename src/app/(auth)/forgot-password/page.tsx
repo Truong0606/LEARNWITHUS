@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -28,11 +28,11 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     
     if (!email) {
-      setErrors({ email: 'Vui lòng nhập email' });
+      setErrors({ email: 'Vui lÃ²ng nháº­p email' });
       return;
     }
     if (!/\S+@\S+\.\S+/.test(email)) {
-      setErrors({ email: 'Email không hợp lệ' });
+      setErrors({ email: 'Email khÃ´ng há»£p lá»‡' });
       return;
     }
 
@@ -49,14 +49,14 @@ export default function ForgotPasswordPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || data.error || 'Không thể gửi email');
+        throw new Error(data.message || data.error || 'KhÃ´ng thá»ƒ gá»­i email');
       }
 
       setDevOtp(data.data?.devOtp ?? null);
       setStep('otp');
     } catch (error) {
       setErrors({ 
-        email: error instanceof Error ? error.message : 'Có lỗi xảy ra' 
+        email: error instanceof Error ? error.message : 'CÃ³ lá»—i xáº£y ra' 
       });
     } finally {
       setLoading(false);
@@ -68,10 +68,10 @@ export default function ForgotPasswordPage() {
     
     const newErrors: Record<string, string> = {};
     if (!otpCode || otpCode.length !== 6) {
-      newErrors.otp = 'Vui lòng nhập mã OTP 6 số';
+      newErrors.otp = 'Vui lÃ²ng nháº­p mÃ£ OTP 6 sá»‘';
     }
     if (!newPassword || newPassword.length < 6) {
-      newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
+      newErrors.password = 'Máº­t kháº©u pháº£i cÃ³ Ã­t nháº¥t 6 kÃ½ tá»±';
     }
     
     if (Object.keys(newErrors).length > 0) {
@@ -92,7 +92,7 @@ export default function ForgotPasswordPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || data.error || 'Không thể đặt lại mật khẩu');
+        throw new Error(data.message || data.error || 'KhÃ´ng thá»ƒ Ä‘áº·t láº¡i máº­t kháº©u');
       }
 
       setStep('success');
@@ -109,7 +109,7 @@ export default function ForgotPasswordPage() {
       }, 1000);
     } catch (error) {
       setErrors({ 
-        otp: error instanceof Error ? error.message : 'Có lỗi xảy ra' 
+        otp: error instanceof Error ? error.message : 'CÃ³ lá»—i xáº£y ra' 
       });
     } finally {
       setLoading(false);
@@ -124,16 +124,16 @@ export default function ForgotPasswordPage() {
           <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-emerald-400 to-green-500">
             <CheckCircle size={40} className="text-white" />
           </div>
-          <h2 className="mb-4 text-2xl font-bold text-gray-800">Đặt Lại Mật Khẩu Thành Công!</h2>
+          <h2 className="mb-4 text-2xl font-bold text-gray-800">Äáº·t Láº¡i Máº­t Kháº©u ThÃ nh CÃ´ng!</h2>
           <p className="mb-6 text-gray-600">
-            Mật khẩu của bạn đã được cập nhật. Đang chuyển hướng đến trang đăng nhập sau {countdown} giây...
+            Máº­t kháº©u cá»§a báº¡n Ä‘Ã£ Ä‘Æ°á»£c cáº­p nháº­t. Äang chuyá»ƒn hÆ°á»›ng Ä‘áº¿n trang Ä‘Äƒng nháº­p sau {countdown} giÃ¢y...
           </p>
           <Link
             href="/login"
             className="inline-flex items-center gap-2 px-6 py-3 text-white font-semibold bg-gradient-to-br from-slate-600 to-slate-800 rounded-xl hover:shadow-lg transition-all"
           >
             <Sparkles size={18} />
-            Đăng nhập ngay
+            ÄÄƒng nháº­p ngay
             
           </Link>
         </div>
@@ -161,9 +161,9 @@ export default function ForgotPasswordPage() {
             </div>
           </div>
 
-          <h1 className="mb-4 text-4xl font-bold">Khôi Phục Tài Khoản</h1>
+          <h1 className="mb-4 text-4xl font-bold">KhÃ´i Phá»¥c TÃ i Khoáº£n</h1>
           <p className="text-xl text-white/80">
-            Đừng lo, chúng tôi sẽ giúp bạn lấy lại mật khẩu để tiếp tục học tập
+            Äá»«ng lo, chÃºng tÃ´i sáº½ giÃºp báº¡n láº¥y láº¡i máº­t kháº©u Ä‘á»ƒ tiáº¿p tá»¥c há»c táº­p
           </p>
         </div>
       </div>
@@ -178,7 +178,7 @@ export default function ForgotPasswordPage() {
                 <GraduationCap size={24} className="text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
-                StudyHub
+                Learn With Us
               </span>
             </Link>
           </div>
@@ -189,12 +189,12 @@ export default function ForgotPasswordPage() {
               <Unlock size={28} className="text-slate-600" />
             </div>
             <h2 className="mb-2 text-2xl font-bold text-gray-800">
-              {step === 'email' ? 'Quên Mật Khẩu?' : 'Xác Nhận OTP'}
+              {step === 'email' ? 'QuÃªn Máº­t Kháº©u?' : 'XÃ¡c Nháº­n OTP'}
             </h2>
             <p className="text-gray-600">
               {step === 'email' 
-                ? 'Nhập email để nhận mã khôi phục' 
-                : `Chúng tôi đã gửi mã OTP đến ${email}`}
+                ? 'Nháº­p email Ä‘á»ƒ nháº­n mÃ£ khÃ´i phá»¥c' 
+                : `ChÃºng tÃ´i Ä‘Ã£ gá»­i mÃ£ OTP Ä‘áº¿n ${email}`}
             </p>
           </div>
 
@@ -202,7 +202,7 @@ export default function ForgotPasswordPage() {
             <form onSubmit={handleSendOTP} className="space-y-5">
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-700">
-                  Email sinh viên
+                  Email sinh viÃªn
                 </label>
                 <div className="relative">
                   <Mail size={18} className="absolute text-gray-400 transform -translate-y-1/2 left-4 top-1/2" />
@@ -233,10 +233,10 @@ export default function ForgotPasswordPage() {
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
                     <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Đang gửi...
+                    Äang gá»­i...
                   </span>
                 ) : (
-                  'Gửi Mã Khôi Phục'
+                  'Gá»­i MÃ£ KhÃ´i Phá»¥c'
                 )}
               </button>
             </form>
@@ -244,7 +244,7 @@ export default function ForgotPasswordPage() {
             <form onSubmit={handleVerifyOTP} className="space-y-5">
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-700">
-                  Mã OTP (6 số)
+                  MÃ£ OTP (6 sá»‘)
                 </label>
                 <input
                   type="text"
@@ -254,7 +254,7 @@ export default function ForgotPasswordPage() {
                     setOtpCode(val);
                     setErrors((prev) => ({ ...prev, otp: '' }));
                   }}
-                  placeholder="Nhập mã 6 số"
+                  placeholder="Nháº­p mÃ£ 6 sá»‘"
                   className={`w-full py-3.5 px-4 text-center text-2xl tracking-widest border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all ${
                     errors.otp ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'
                   }`}
@@ -268,7 +268,7 @@ export default function ForgotPasswordPage() {
 
               <div>
                 <label className="block mb-2 text-sm font-semibold text-gray-700">
-                  Mật khẩu mới
+                  Máº­t kháº©u má»›i
                 </label>
                 <input
                   type="password"
@@ -277,7 +277,7 @@ export default function ForgotPasswordPage() {
                     setNewPassword(e.target.value);
                     setErrors((prev) => ({ ...prev, password: '' }));
                   }}
-                  placeholder="Tối thiểu 6 ký tự"
+                  placeholder="Tá»‘i thiá»ƒu 6 kÃ½ tá»±"
                   className={`w-full py-3.5 px-4 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all ${
                     errors.password ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'
                   }`}
@@ -296,10 +296,10 @@ export default function ForgotPasswordPage() {
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
                     <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Đang xử lý...
+                    Äang xá»­ lÃ½...
                   </span>
                 ) : (
-                  'Đặt Lại Mật Khẩu'
+                  'Äáº·t Láº¡i Máº­t Kháº©u'
                 )}
               </button>
 
@@ -308,7 +308,7 @@ export default function ForgotPasswordPage() {
                 onClick={() => setStep('email')}
                 className="w-full py-3 text-sm font-medium text-gray-600 hover:text-slate-600 transition-colors"
               >
-                ← Quay lại nhập email khác
+                â† Quay láº¡i nháº­p email khÃ¡c
               </button>
             </form>
           )}
@@ -320,7 +320,7 @@ export default function ForgotPasswordPage() {
               className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-violet-800 transition-colors"
             >
               <ArrowLeft size={16} />
-              Quay lại đăng nhập
+              Quay láº¡i Ä‘Äƒng nháº­p
             </Link>
           </div>
         </div>
@@ -328,3 +328,4 @@ export default function ForgotPasswordPage() {
     </div>
   );
 }
+

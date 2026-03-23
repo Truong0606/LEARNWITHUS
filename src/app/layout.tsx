@@ -10,8 +10,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "StudyHub - Học tập cộng đồng",
-    template: "%s | StudyHub",
+    default: "Learn With Us - Học tập cộng đồng",
+    template: "%s | Learn With Us",
   },
   description:
     "Nền tảng học tập cộng đồng cho sinh viên: tạo hồ sơ học tập, tham gia nhóm theo môn, thảo luận trên diễn đàn, dùng Pomodoro và đăng ký mentor.",
@@ -22,16 +22,16 @@ export const metadata: Metadata = {
     "pomodoro",
     "mentor",
     "sinh viên",
-    "StudyHub",
+    "Learn With Us",
   ],
-  authors: [{ name: "StudyHub Team" }],
-  creator: "StudyHub",
+  authors: [{ name: "Learn With Us Team" }],
+  creator: "Learn With Us",
   openGraph: {
     type: "website",
     locale: "vi_VN",
-    url: "https://studyhub.vn",
-    siteName: "StudyHub",
-    title: "StudyHub - Học tập cộng đồng",
+    url: "https://learnwithus.vn",
+    siteName: "Learn With Us",
+    title: "Learn With Us - Học tập cộng đồng",
     description:
       "Kết nối sinh viên cùng học: nhóm học theo môn, diễn đàn thảo luận, Pomodoro tập trung và mentor đồng hành.",
     images: [
@@ -39,13 +39,13 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "StudyHub",
+        alt: "Learn With Us",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "StudyHub - Học tập cộng đồng",
+    title: "Learn With Us - Học tập cộng đồng",
     description:
       "Kết nối sinh viên cùng học: nhóm học theo môn, diễn đàn thảo luận, Pomodoro tập trung và mentor đồng hành.",
     images: ["/og-image.png"],

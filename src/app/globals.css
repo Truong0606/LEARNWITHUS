@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  /* StudyHub Theme Colors - Warm & Vibrant */
+  /* Learn With Us Theme Colors - Warm & Vibrant */
   --primary: #475569;          /* Slate - Professional */
   --primary-dark: #334155;
   --primary-light: #64748b;
@@ -78,19 +78,19 @@ body {
 }
 
 /* Vibrant gradient backgrounds */
-.bg-studyhub-gradient {
+.bg-learnwithus-gradient {
   background: linear-gradient(135deg, #f3e8ff 0%, #fce7f3 50%, #fef3c7 100%);
 }
 
-.bg-studyhub-hero {
+.bg-learnwithus-hero {
   background: linear-gradient(135deg, #ddd6fe 0%, #fbcfe8 100%);
 }
 
-.bg-studyhub-accent {
+.bg-learnwithus-accent {
   background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
 }
 
-.bg-studyhub-vibrant {
+.bg-learnwithus-vibrant {
   background: linear-gradient(135deg, #ddd6fe 0%, #fbcfe8 100%);
 }
 
@@ -300,6 +300,7 @@ body {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  line-clamp: 2;
   overflow: hidden;
 }
 
@@ -307,6 +308,7 @@ body {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
+  line-clamp: 3;
   overflow: hidden;
 }
 

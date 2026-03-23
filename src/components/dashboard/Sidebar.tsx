@@ -23,7 +23,7 @@ interface SidebarProps {
   title?: string;
 }
 
-export default function Sidebar({ items, title = 'StudyHub Admin' }: SidebarProps) {
+export default function Sidebar({ items, title = 'Learn With Us Admin' }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [openDropdown, setOpenDropdown] = useState<Record<string, boolean>>({});

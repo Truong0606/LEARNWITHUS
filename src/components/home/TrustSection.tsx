@@ -19,7 +19,7 @@ export default function TrustSection() {
       <div className="relative px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="mb-4 text-2xl font-bold md:text-3xl">
-            Cộng đồng tin tưởng StudyHub
+            Cộng đồng tin tưởng Learn With Us
           </h2>
           <p className="text-white/80">
             Con số ấn tượng từ cộng đồng học tập của chúng tôi

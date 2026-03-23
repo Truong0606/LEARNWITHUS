@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
@@ -43,9 +43,9 @@ const DEFAULT_TIMES: TimerConfig = {
 };
 
 const MODE_LABELS: Record<TimerMode, string> = {
-  focus: 'Tập trung',
-  shortBreak: 'Nghỉ ngắn',
-  longBreak: 'Nghỉ dài',
+  focus: 'Táº­p trung',
+  shortBreak: 'Nghá»‰ ngáº¯n',
+  longBreak: 'Nghá»‰ dÃ i',
 };
 
 const MODE_ICONS: Record<TimerMode, React.ReactNode> = {
@@ -142,11 +142,11 @@ export default function PomodoroPage() {
       });
       if (isVip) loadVipStats(token);
     } catch {
-      // Bỏ qua
+      // Bá» qua
     }
   }, [token, currentSubject, isVip, loadVipStats]);
 
-  // Cập nhật ref saveSession
+  // Cáº­p nháº­t ref saveSession
   useEffect(() => {
     saveSessionRef.current = saveSession;
   }, [saveSession]);
@@ -164,7 +164,7 @@ export default function PomodoroPage() {
     return ((total - timeLeft) / total) * 100;
   };
 
-  // Đổi chế độ
+  // Äá»•i cháº¿ Ä‘á»™
   const handleModeChange = useCallback((newMode: TimerMode) => {
     setMode(newMode);
     setTimeLeft(DEFAULT_TIMES[newMode]);
@@ -184,7 +184,7 @@ export default function PomodoroPage() {
     completionFiredRef.current = false;
   }, [mode]);
 
-  // Đếm giây
+  // Äáº¿m giÃ¢y
   useEffect(() => {
     if (!isRunning || timeLeft <= 0) return;
     const interval = setInterval(() => {
@@ -200,7 +200,7 @@ export default function PomodoroPage() {
     }
   }, [timeLeft]);
 
-  // Phát hiện hoàn thành 1 chu kỳ
+  // PhÃ¡t hiá»‡n hoÃ n thÃ nh 1 chu ká»³
   useEffect(() => {
     if (timeLeft !== 0 || completionFiredRef.current) return;
     completionFiredRef.current = true;
@@ -208,7 +208,7 @@ export default function PomodoroPage() {
 
     if (mode === 'focus') {
       setCompletedSessions((prev) => prev + 1);
-      saveSessionRef.current(FOCUS_MINUTES); // use ref — no dep on saveSession
+      saveSessionRef.current(FOCUS_MINUTES); // use ref â€” no dep on saveSession
       if (typeof window !== 'undefined') {
         new Audio('/notification.mp3').play().catch(() => {});
       }
@@ -221,8 +221,8 @@ export default function PomodoroPage() {
   // Update document title with timer
   useEffect(() => {
     document.title = isRunning
-      ? `${formatTime(timeLeft)} - ${MODE_LABELS[mode]} | StudyHub`
-      : 'Pomodoro Timer | StudyHub';
+      ? `${formatTime(timeLeft)} - ${MODE_LABELS[mode]} | Learn With Us`
+      : 'Pomodoro Timer | Learn With Us';
   }, [timeLeft, isRunning, mode]);
 
   // Get colors based on mode
@@ -264,7 +264,7 @@ export default function PomodoroPage() {
       <div className="flex justify-center py-3">
         <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-amber-100">
           <Flame size={18} className="text-amber-600" />
-          <span className="font-semibold text-amber-700">{completedSessions} phiên hoàn thành</span>
+          <span className="font-semibold text-amber-700">{completedSessions} phiÃªn hoÃ n thÃ nh</span>
         </div>
       </div>
 
@@ -297,7 +297,7 @@ export default function PomodoroPage() {
               type="text"
               value={currentSubject}
               onChange={(e) => setCurrentSubject(e.target.value)}
-              placeholder="Đang học gì? (tùy chọn)"
+              placeholder="Äang há»c gÃ¬? (tÃ¹y chá»n)"
               className="w-full max-w-xs px-4 py-2 text-sm text-gray-700 bg-white rounded-xl border border-gray-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-300"
             />
           </div>
@@ -352,7 +352,7 @@ export default function PomodoroPage() {
           <button
             onClick={resetTimer}
             className="flex items-center justify-center w-14 h-14 text-gray-600 bg-white rounded-2xl shadow-lg hover:bg-gray-50 hover:text-gray-900 transition-all hover:scale-105"
-            title="Đặt lại"
+            title="Äáº·t láº¡i"
           >
             <RotateCcw size={24} />
           </button>
@@ -365,12 +365,12 @@ export default function PomodoroPage() {
             {isRunning ? (
               <>
                 <Pause size={28} />
-                <span>Tạm dừng</span>
+                <span>Táº¡m dá»«ng</span>
               </>
             ) : (
               <>
                 <Play size={28} />
-                <span>Bắt đầu</span>
+                <span>Báº¯t Ä‘áº§u</span>
               </>
             )}
           </button>
@@ -383,10 +383,10 @@ export default function PomodoroPage() {
               <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100">
                 <Target size={20} className="text-slate-600" />
               </div>
-              <h3 className="font-semibold text-gray-800">Mục tiêu hôm nay</h3>
+              <h3 className="font-semibold text-gray-800">Má»¥c tiÃªu hÃ´m nay</h3>
             </div>
             <p className="text-3xl font-bold text-slate-600">{completedSessions} / 8</p>
-            <p className="mt-1 text-sm text-gray-500">phiên tập trung</p>
+            <p className="mt-1 text-sm text-gray-500">phiÃªn táº­p trung</p>
           </div>
 
           <div className="p-6 bg-white rounded-2xl shadow-lg border border-emerald-100">
@@ -394,12 +394,12 @@ export default function PomodoroPage() {
               <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-100">
                 <Timer size={20} className="text-emerald-600" />
               </div>
-              <h3 className="font-semibold text-gray-800">Thời gian học</h3>
+              <h3 className="font-semibold text-gray-800">Thá»i gian há»c</h3>
             </div>
             <p className="text-3xl font-bold text-emerald-600">
               {Math.floor(totalFocusMinutes / 60)}h {totalFocusMinutes % 60}m
             </p>
-            <p className="mt-1 text-sm text-gray-500">hôm nay</p>
+            <p className="mt-1 text-sm text-gray-500">hÃ´m nay</p>
           </div>
 
           <div className="p-6 bg-white rounded-2xl shadow-lg border border-amber-100">
@@ -407,12 +407,12 @@ export default function PomodoroPage() {
               <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-100">
                 <Flame size={20} className="text-amber-600" />
               </div>
-              <h3 className="font-semibold text-gray-800">Chuỗi ngày</h3>
+              <h3 className="font-semibold text-gray-800">Chuá»—i ngÃ y</h3>
             </div>
             {isVip ? (
               <>
-                <p className="text-3xl font-bold text-amber-600">{realStreak} ngày</p>
-                <p className="mt-1 text-sm text-gray-500">liên tiếp học tập</p>
+                <p className="text-3xl font-bold text-amber-600">{realStreak} ngÃ y</p>
+                <p className="mt-1 text-sm text-gray-500">liÃªn tiáº¿p há»c táº­p</p>
               </>
             ) : (
               <>
@@ -421,7 +421,7 @@ export default function PomodoroPage() {
                   <span className="text-sm text-gray-400">VIP only</span>
                 </div>
                 <p className="mt-1 text-sm text-gray-500">
-                  <Link href="/upgrade" className="text-amber-600 font-medium hover:underline">Nâng cấp VIP</Link> để xem
+                  <Link href="/upgrade" className="text-amber-600 font-medium hover:underline">NÃ¢ng cáº¥p VIP</Link> Ä‘á»ƒ xem
                 </p>
               </>
             )}
@@ -435,7 +435,7 @@ export default function PomodoroPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Crown size={20} className="text-amber-500" />
-                <h2 className="text-lg font-bold text-gray-800">Thống kê nâng cao (VIP)</h2>
+                <h2 className="text-lg font-bold text-gray-800">Thá»‘ng kÃª nÃ¢ng cao (VIP)</h2>
               </div>
               {token && (
                 <button
@@ -443,7 +443,7 @@ export default function PomodoroPage() {
                   className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 transition-colors"
                 >
                   <RefreshCw size={14} />
-                  Làm mới
+                  LÃ m má»›i
                 </button>
               )}
             </div>
@@ -454,13 +454,13 @@ export default function PomodoroPage() {
               </div>
             ) : statsError ? (
               <div className="flex flex-col items-center py-10 gap-3 bg-white rounded-2xl border border-red-100">
-                <p className="text-sm text-red-500 font-medium">Không thể tải thống kê</p>
+                <p className="text-sm text-red-500 font-medium">KhÃ´ng thá»ƒ táº£i thá»‘ng kÃª</p>
                 {token && (
                   <button
                     onClick={() => loadVipStats(token)}
                     className="flex items-center gap-1.5 text-sm text-blue-600 hover:underline"
                   >
-                    <RefreshCw size={13} /> Thử lại
+                    <RefreshCw size={13} /> Thá»­ láº¡i
                   </button>
                 )}
               </div>
@@ -470,17 +470,17 @@ export default function PomodoroPage() {
                 <div className="grid gap-4 sm:grid-cols-3">
                   <div className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 text-center">
                     <p className="text-2xl font-bold text-slate-700">{vipStats.totalSessions}</p>
-                    <p className="text-sm text-gray-500 mt-0.5">Tổng phiên học</p>
+                    <p className="text-sm text-gray-500 mt-0.5">Tá»•ng phiÃªn há»c</p>
                   </div>
                   <div className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 text-center">
                     <p className="text-2xl font-bold text-emerald-600">
                       {Math.floor(vipStats.totalMinutes / 60)}h {vipStats.totalMinutes % 60}m
                     </p>
-                    <p className="text-sm text-gray-500 mt-0.5">Tổng thời gian</p>
+                    <p className="text-sm text-gray-500 mt-0.5">Tá»•ng thá»i gian</p>
                   </div>
                   <div className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 text-center">
-                    <p className="text-2xl font-bold text-amber-600">{vipStats.streak} ngày</p>
-                    <p className="text-sm text-gray-500 mt-0.5">Chuỗi ngày hiện tại</p>
+                    <p className="text-2xl font-bold text-amber-600">{vipStats.streak} ngÃ y</p>
+                    <p className="text-sm text-gray-500 mt-0.5">Chuá»—i ngÃ y hiá»‡n táº¡i</p>
                   </div>
                 </div>
 
@@ -488,7 +488,7 @@ export default function PomodoroPage() {
                 <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
                   <div className="flex items-center gap-2 mb-4">
                     <TrendingUp size={18} className="text-slate-600" />
-                    <h3 className="font-semibold text-gray-800">7 ngày gần nhất</h3>
+                    <h3 className="font-semibold text-gray-800">7 ngÃ y gáº§n nháº¥t</h3>
                   </div>
                   <ResponsiveContainer width="100%" height={200}>
                     <BarChart data={vipStats.weeklyData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
@@ -496,7 +496,7 @@ export default function PomodoroPage() {
                       <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                       <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
                       <Tooltip
-                        formatter={(value) => [`${value ?? 0} phiên`, 'Pomodoro']}
+                        formatter={(value) => [`${value ?? 0} phiÃªn`, 'Pomodoro']}
                         contentStyle={{ borderRadius: 8, border: '1px solid #e2e8f0' }}
                       />
                       <Bar dataKey="sessions" fill="#475569" radius={[4, 4, 0, 0]} />
@@ -508,7 +508,7 @@ export default function PomodoroPage() {
                 <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
                   <div className="flex items-center gap-2 mb-4">
                     <TrendingUp size={18} className="text-emerald-600" />
-                    <h3 className="font-semibold text-gray-800">4 tuần gần nhất</h3>
+                    <h3 className="font-semibold text-gray-800">4 tuáº§n gáº§n nháº¥t</h3>
                   </div>
                   <ResponsiveContainer width="100%" height={200}>
                     <BarChart data={vipStats.monthlyData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
@@ -516,7 +516,7 @@ export default function PomodoroPage() {
                       <XAxis dataKey="week" tick={{ fontSize: 10 }} />
                       <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
                       <Tooltip
-                        formatter={(value) => [`${value ?? 0} phiên`, 'Pomodoro']}
+                        formatter={(value) => [`${value ?? 0} phiÃªn`, 'Pomodoro']}
                         contentStyle={{ borderRadius: 8, border: '1px solid #d1fae5' }}
                       />
                       <Bar dataKey="sessions" fill="#10b981" radius={[4, 4, 0, 0]} />
@@ -527,7 +527,7 @@ export default function PomodoroPage() {
                 {/* Subject Breakdown */}
                 {vipStats.subjectBreakdown.length > 0 && (
                   <div className="p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
-                    <h3 className="font-semibold text-gray-800 mb-4">Môn học nhiều nhất</h3>
+                    <h3 className="font-semibold text-gray-800 mb-4">MÃ´n há»c nhiá»u nháº¥t</h3>
                     <div className="space-y-2.5">
                       {vipStats.subjectBreakdown.map(({ subject, count }) => {
                         const max = vipStats.subjectBreakdown[0].count;
@@ -540,7 +540,7 @@ export default function PomodoroPage() {
                                 style={{ width: `${(count / max) * 100}%` }}
                               />
                             </div>
-                            <span className="text-sm font-semibold text-slate-700 w-12 text-right">{count} phiên</span>
+                            <span className="text-sm font-semibold text-slate-700 w-12 text-right">{count} phiÃªn</span>
                           </div>
                         );
                       })}
@@ -551,7 +551,7 @@ export default function PomodoroPage() {
                 {/* Empty state when no sessions yet */}
                 {vipStats.totalSessions === 0 && (
                   <div className="p-8 bg-white rounded-2xl border border-gray-100 text-center">
-                    <p className="text-gray-400 text-sm">Chưa có phiên học nào. Hoàn thành phiên Pomodoro đầu tiên để thấy thống kê!</p>
+                    <p className="text-gray-400 text-sm">ChÆ°a cÃ³ phiÃªn há»c nÃ o. HoÃ n thÃ nh phiÃªn Pomodoro Ä‘áº§u tiÃªn Ä‘á»ƒ tháº¥y thá»‘ng kÃª!</p>
                   </div>
                 )}
               </>
@@ -564,17 +564,17 @@ export default function PomodoroPage() {
           <div className="mt-8 p-6 bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl border border-amber-200">
             <div className="flex items-center gap-3 mb-2">
               <Crown size={20} className="text-amber-500" />
-              <h3 className="font-semibold text-amber-800">Thống kê Pomodoro nâng cao</h3>
+              <h3 className="font-semibold text-amber-800">Thá»‘ng kÃª Pomodoro nÃ¢ng cao</h3>
             </div>
             <p className="text-sm text-amber-700 mb-4">
-              Xem lịch sử, biểu đồ theo tuần/tháng, chuỗi ngày học tập và phân tích môn học với tài khoản VIP.
+              Xem lá»‹ch sá»­, biá»ƒu Ä‘á»“ theo tuáº§n/thÃ¡ng, chuá»—i ngÃ y há»c táº­p vÃ  phÃ¢n tÃ­ch mÃ´n há»c vá»›i tÃ i khoáº£n VIP.
             </p>
             <Link
               href="/upgrade"
               className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl hover:shadow-lg transition-all"
             >
               <Crown size={15} />
-              Nâng cấp VIP ngay
+              NÃ¢ng cáº¥p VIP ngay
             </Link>
           </div>
         )}
@@ -583,20 +583,20 @@ export default function PomodoroPage() {
         <div className="mt-8 p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200">
           <h3 className="flex items-center gap-2 mb-4 text-lg font-semibold text-gray-800">
             <Sparkles size={20} className="text-amber-500" />
-            Mẹo học hiệu quả với Pomodoro
+            Máº¹o há»c hiá»‡u quáº£ vá»›i Pomodoro
           </h3>
           <ul className="space-y-2 text-gray-600">
             <li className="flex items-start gap-2">
-              <span className="text-slate-500">•</span>
-              <span><strong>25 phút tập trung</strong> - Tắt thông báo, tập trung hoàn toàn vào công việc</span>
+              <span className="text-slate-500">â€¢</span>
+              <span><strong>25 phÃºt táº­p trung</strong> - Táº¯t thÃ´ng bÃ¡o, táº­p trung hoÃ n toÃ n vÃ o cÃ´ng viá»‡c</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-emerald-500">•</span>
-              <span><strong>5 phút nghỉ ngắn</strong> - Đứng dậy, vươn vai, uống nước</span>
+              <span className="text-emerald-500">â€¢</span>
+              <span><strong>5 phÃºt nghá»‰ ngáº¯n</strong> - Äá»©ng dáº­y, vÆ°Æ¡n vai, uá»‘ng nÆ°á»›c</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-amber-500">•</span>
-              <span><strong>15 phút nghỉ dài</strong> - Sau 4 phiên, nghỉ dài để não bộ phục hồi</span>
+              <span className="text-amber-500">â€¢</span>
+              <span><strong>15 phÃºt nghá»‰ dÃ i</strong> - Sau 4 phiÃªn, nghá»‰ dÃ i Ä‘á»ƒ nÃ£o bá»™ phá»¥c há»“i</span>
             </li>
           </ul>
         </div>
@@ -605,3 +605,4 @@ export default function PomodoroPage() {
     </div>
   );
 }
+

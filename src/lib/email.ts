@@ -18,8 +18,8 @@ const EMAIL_CONFIG = {
   },
 };
 
-const FROM_EMAIL = process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@studyhub.vn';
-const FROM_NAME = process.env.SMTP_FROM_NAME || 'StudyHub';
+const FROM_EMAIL = process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@learnwithus.vn';
+const FROM_NAME = process.env.SMTP_FROM_NAME || 'Learn With Us';
 
 // Create transporter - use service 'gmail' when host is Gmail for better compatibility
 const transporter = nodemailer.createTransport(
@@ -43,7 +43,7 @@ function baseTemplate(content: string): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StudyHub</title>
+  <title>Learn With Us</title>
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5; }
     .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
@@ -59,15 +59,15 @@ function baseTemplate(content: string): string {
 <body>
   <div class="container">
     <div class="header">
-      <h1>📚 StudyHub</h1>
+      <h1>📚 Learn With Us</h1>
       <p style="margin: 10px 0 0 0; opacity: 0.9;">Nền tảng học tập cộng đồng</p>
     </div>
     <div class="content">
       ${content}
     </div>
     <div class="footer">
-      <p>© 2024 StudyHub. All rights reserved.</p>
-      <p>Email: support@studyhub.vn</p>
+      <p>© 2026 Learn With Us. All rights reserved.</p>
+      <p>Email: support@learnwithus.vn</p>
       <p style="margin-top: 10px;">
         <a href="#" style="color: #2563eb; text-decoration: none;">Website</a> | 
         <a href="#" style="color: #2563eb; text-decoration: none;">Facebook</a> | 
@@ -103,14 +103,14 @@ export function otpEmailTemplate(otp: string, purpose: 'reset' | 'verify'): Emai
       <p style="margin: 0;">⚠️ <strong>Lưu ý bảo mật:</strong></p>
       <ul style="margin: 10px 0 0 0; padding-left: 20px;">
         <li>Không chia sẻ mã này với bất kỳ ai</li>
-        <li>StudyHub không bao giờ yêu cầu mã OTP qua điện thoại</li>
+        <li>Learn With Us không bao giờ yêu cầu mã OTP qua điện thoại</li>
         <li>Nếu bạn không yêu cầu mã này, hãy bỏ qua email</li>
       </ul>
     </div>
   `;
 
   return {
-    subject: `[Bloodline DNA] Mã xác thực ${purposeText}`,
+    subject: `[Learn With Us] Mã xác thực ${purposeText}`,
     html: baseTemplate(content),
     text: `Mã OTP của bạn là: ${otp}. Mã này sẽ hết hạn sau 5 phút.`
   };
@@ -229,39 +229,38 @@ export function resultReadyTemplate(
 // Welcome Email Template
 export function welcomeEmailTemplate(fullName: string): EmailTemplate {
   const content = `
-    <h2>Chào mừng đến với Bloodline DNA! 🎉</h2>
+    <h2>Chào mừng đến với Learn With Us! 🎉</h2>
     <p>Xin chào <span class="highlight">${fullName}</span>,</p>
     
-    <p>Cảm ơn bạn đã đăng ký tài khoản tại Bloodline DNA - Dịch vụ xét nghiệm ADN chuyên nghiệp và uy tín hàng đầu Việt Nam.</p>
+    <p>Cảm ơn bạn đã đăng ký tài khoản tại Learn With Us - Nền tảng học tập cộng đồng dành cho sinh viên.</p>
     
     <div class="info-box">
       <h3 style="margin-top: 0;">✨ Với tài khoản của bạn, bạn có thể:</h3>
       <ul style="padding-left: 20px;">
-        <li>Đặt lịch xét nghiệm ADN trực tuyến</li>
-        <li>Theo dõi tiến trình đơn hàng</li>
-        <li>Xem và tải kết quả xét nghiệm</li>
-        <li>Quản lý thông tin cá nhân</li>
+        <li>Tìm kiếm và tham gia các nhóm học tập</li>
+        <li>Thảo luận trên diễn đàn cộng đồng</li>
+        <li>Sử dụng đồng hồ Pomodoro tập trung</li>
+        <li>Kết nối với các Mentor giàu kinh nghiệm</li>
       </ul>
     </div>
     
     <div style="text-align: center;">
-      <a href="#" class="button">Khám phá dịch vụ</a>
+      <a href="#" class="button">Khám phá ngay</a>
     </div>
     
     <p>Nếu bạn cần hỗ trợ, đừng ngần ngại liên hệ với chúng tôi qua:</p>
     <ul>
-      <li>Hotline: <strong>1900 xxxx</strong></li>
-      <li>Email: <strong>support@bloodline-dna.vn</strong></li>
-      <li>Zalo: <strong>Bloodline DNA</strong></li>
+      <li>Email: <strong>support@learnwithus.vn</strong></li>
+      <li>Zalo: <strong>Learn With Us</strong></li>
     </ul>
     
-    <p>Trân trọng,<br><strong>Đội ngũ Bloodline DNA</strong></p>
+    <p>Trân trọng,<br><strong>Đội ngũ Learn With Us</strong></p>
   `;
 
   return {
-    subject: '[Bloodline DNA] Chào mừng bạn đến với Bloodline DNA! 🧬',
+    subject: '[Learn With Us] Chào mừng bạn đến với Learn With Us! 📚',
     html: baseTemplate(content),
-    text: `Chào mừng ${fullName} đến với Bloodline DNA! Cảm ơn bạn đã đăng ký tài khoản.`
+    text: `Chào mừng ${fullName} đến với Learn With Us! Cảm ơn bạn đã đăng ký tài khoản.`
   };
 }
 

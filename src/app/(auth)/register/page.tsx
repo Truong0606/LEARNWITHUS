@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -19,14 +19,14 @@ import {
 } from 'lucide-react';
 
 const subjectOptions = [
-  { id: 'math', name: 'Toán học', color: 'violet' },
-  { id: 'programming', name: 'Lập trình', color: 'pink' },
-  { id: 'database', name: 'Cơ sở dữ liệu', color: 'emerald' },
-  { id: 'ai', name: 'Trí tuệ nhân tạo', color: 'amber' },
-  { id: 'economics', name: 'Kinh tế học', color: 'rose' },
-  { id: 'english', name: 'Tiếng Anh', color: 'indigo' },
-  { id: 'physics', name: 'Vật lý', color: 'cyan' },
-  { id: 'chemistry', name: 'Hóa học', color: 'orange' },
+  { id: 'math', name: 'ToÃ¡n há»c', color: 'violet' },
+  { id: 'programming', name: 'Láº­p trÃ¬nh', color: 'pink' },
+  { id: 'database', name: 'CÆ¡ sá»Ÿ dá»¯ liá»‡u', color: 'emerald' },
+  { id: 'ai', name: 'TrÃ­ tuá»‡ nhÃ¢n táº¡o', color: 'amber' },
+  { id: 'economics', name: 'Kinh táº¿ há»c', color: 'rose' },
+  { id: 'english', name: 'Tiáº¿ng Anh', color: 'indigo' },
+  { id: 'physics', name: 'Váº­t lÃ½', color: 'cyan' },
+  { id: 'chemistry', name: 'HÃ³a há»c', color: 'orange' },
 ];
 
 export default function RegisterPage() {
@@ -76,39 +76,39 @@ export default function RegisterPage() {
     const newErrors: Record<string, string> = {};
 
     if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Vui lòng nhập họ tên';
+      newErrors.fullName = 'Vui lÃ²ng nháº­p há» tÃªn';
     } else if (formData.fullName.length < 2) {
-      newErrors.fullName = 'Họ tên phải có ít nhất 2 ký tự';
+      newErrors.fullName = 'Há» tÃªn pháº£i cÃ³ Ã­t nháº¥t 2 kÃ½ tá»±';
     }
 
     if (!formData.email) {
-      newErrors.email = 'Vui lòng nhập email';
+      newErrors.email = 'Vui lÃ²ng nháº­p email';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email không hợp lệ';
+      newErrors.email = 'Email khÃ´ng há»£p lá»‡';
     }
 
     if (!formData.university.trim()) {
-      newErrors.university = 'Vui lòng nhập tên trường';
+      newErrors.university = 'Vui lÃ²ng nháº­p tÃªn trÆ°á»ng';
     }
 
     if (formData.subjects.length === 0) {
-      newErrors.subjects = 'Vui lòng chọn ít nhất 1 môn học yêu thích';
+      newErrors.subjects = 'Vui lÃ²ng chá»n Ã­t nháº¥t 1 mÃ´n há»c yÃªu thÃ­ch';
     }
 
     if (!formData.password) {
-      newErrors.password = 'Vui lòng nhập mật khẩu';
+      newErrors.password = 'Vui lÃ²ng nháº­p máº­t kháº©u';
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
+      newErrors.password = 'Máº­t kháº©u pháº£i cÃ³ Ã­t nháº¥t 6 kÃ½ tá»±';
     }
 
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Vui lòng xác nhận mật khẩu';
+      newErrors.confirmPassword = 'Vui lÃ²ng xÃ¡c nháº­n máº­t kháº©u';
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Mật khẩu không khớp';
+      newErrors.confirmPassword = 'Máº­t kháº©u khÃ´ng khá»›p';
     }
 
     if (!formData.terms) {
-      newErrors.terms = 'Vui lòng đồng ý với điều khoản sử dụng';
+      newErrors.terms = 'Vui lÃ²ng Ä‘á»“ng Ã½ vá»›i Ä‘iá»u khoáº£n sá»­ dá»¥ng';
     }
 
     setErrors(newErrors);
@@ -136,7 +136,7 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || data.error || 'Đăng ký thất bại');
+        throw new Error(data.message || data.error || 'ÄÄƒng kÃ½ tháº¥t báº¡i');
       }
 
       setShowSuccess(true);
@@ -148,7 +148,7 @@ export default function RegisterPage() {
         setErrors({ email: error.message });
       } else {
         setErrors({ 
-          confirmPassword: error instanceof Error ? error.message : 'Đăng ký thất bại' 
+          confirmPassword: error instanceof Error ? error.message : 'ÄÄƒng kÃ½ tháº¥t báº¡i' 
         });
       }
     } finally {
@@ -163,17 +163,17 @@ export default function RegisterPage() {
           <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-emerald-400 to-green-500">
             <CheckCircle size={40} className="text-white" />
           </div>
-          <h2 className="mb-4 text-2xl font-bold text-gray-800">Đăng Ký Thành Công!</h2>
+          <h2 className="mb-4 text-2xl font-bold text-gray-800">ÄÄƒng KÃ½ ThÃ nh CÃ´ng!</h2>
           <p className="mb-6 text-gray-600">
-            Chào mừng bạn đến với StudyHub! 
-            Bạn sẽ được chuyển đến trang đăng nhập...
+            ChÃ o má»«ng báº¡n Ä‘áº¿n vá»›i Learn With Us! 
+            Báº¡n sáº½ Ä‘Æ°á»£c chuyá»ƒn Ä‘áº¿n trang Ä‘Äƒng nháº­p...
           </p>
           <Link
             href="/login"
             className="inline-flex items-center gap-2 px-6 py-3 text-white font-semibold bg-gradient-to-r from-slate-800 via-slate-900 to-slate-950 rounded-xl hover:shadow-lg transition-all"
           >
             <Sparkles size={18} />
-            Bắt đầu học ngay
+            Báº¯t Ä‘áº§u há»c ngay
           </Link>
         </div>
       </div>
@@ -202,9 +202,9 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <h1 className="mb-4 text-4xl font-bold">Tham Gia StudyHub</h1>
+          <h1 className="mb-4 text-4xl font-bold">Tham Gia Learn With Us</h1>
           <p className="mb-8 text-xl text-white/80">
-            Bắt đầu hành trình học tập hiệu quả cùng cộng đồng sinh viên
+            Báº¯t Ä‘áº§u hÃ nh trÃ¬nh há»c táº­p hiá»‡u quáº£ cÃ¹ng cá»™ng Ä‘á»“ng sinh viÃªn
           </p>
 
           {/* Benefits */}
@@ -213,25 +213,25 @@ export default function RegisterPage() {
               <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20">
                 <Users size={20} />
               </div>
-              <span>Tham gia nhóm học theo môn</span>
+              <span>Tham gia nhÃ³m há»c theo mÃ´n</span>
             </div>
             <div className="flex items-center justify-center gap-3 text-white/90">
               <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20">
                 <MessageSquare size={20} />
               </div>
-              <span>Thảo luận và hỏi đáp trên diễn đàn</span>
+              <span>Tháº£o luáº­n vÃ  há»i Ä‘Ã¡p trÃªn diá»…n Ä‘Ã n</span>
             </div>
             <div className="flex items-center justify-center gap-3 text-white/90">
               <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20">
                 <Timer size={20} />
               </div>
-              <span>Tập trung học với Pomodoro</span>
+              <span>Táº­p trung há»c vá»›i Pomodoro</span>
             </div>
             <div className="flex items-center justify-center gap-3 text-white/90">
               <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20">
                 <BookOpen size={20} />
               </div>
-              <span>Được mentor hỗ trợ 1-1</span>
+              <span>ÄÆ°á»£c mentor há»— trá»£ 1-1</span>
             </div>
           </div>
 
@@ -240,11 +240,11 @@ export default function RegisterPage() {
             <div className="flex items-center justify-center gap-8 text-white/90">
               <div className="text-center">
                 <span className="block text-3xl font-bold">25K+</span>
-                <span className="text-sm text-white/70">Sinh viên</span>
+                <span className="text-sm text-white/70">Sinh viÃªn</span>
               </div>
               <div className="text-center">
                 <span className="block text-3xl font-bold">1.2K+</span>
-                <span className="text-sm text-white/70">Nhóm học</span>
+                <span className="text-sm text-white/70">NhÃ³m há»c</span>
               </div>
               <div className="text-center">
                 <span className="block text-3xl font-bold">350+</span>
@@ -265,7 +265,7 @@ export default function RegisterPage() {
                 <GraduationCap size={24} className="text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-slate-700 to-slate-900 bg-clip-text text-transparent">
-                StudyHub
+                Learn With Us
               </span>
             </Link>
           </div>
@@ -276,10 +276,10 @@ export default function RegisterPage() {
               <UserPlus size={28} className="text-slate-600" />
             </div>
             <h2 className="mb-2 text-2xl font-bold text-gray-800">
-              Tạo Tài Khoản Học Tập
+              Táº¡o TÃ i Khoáº£n Há»c Táº­p
             </h2>
             <p className="text-gray-600">
-              Miễn phí và chỉ mất 1 phút để đăng ký
+              Miá»…n phÃ­ vÃ  chá»‰ máº¥t 1 phÃºt Ä‘á»ƒ Ä‘Äƒng kÃ½
             </p>
           </div>
 
@@ -288,7 +288,7 @@ export default function RegisterPage() {
             {/* Full Name */}
             <div>
               <label className="block mb-1.5 text-sm font-semibold text-gray-700">
-                Họ và tên
+                Há» vÃ  tÃªn
               </label>
               <div className="relative">
                 <User size={18} className="absolute text-gray-400 transform -translate-y-1/2 left-4 top-1/2" />
@@ -297,7 +297,7 @@ export default function RegisterPage() {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleChange}
-                  placeholder="VD: Nguyễn Văn A"
+                  placeholder="VD: Nguyá»…n VÄƒn A"
                   className={`w-full py-3 pl-12 pr-4 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all ${
                     errors.fullName ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'
                   }`}
@@ -313,7 +313,7 @@ export default function RegisterPage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="block mb-1.5 text-sm font-semibold text-gray-700">
-                  Email sinh viên
+                  Email sinh viÃªn
                 </label>
                 <div className="relative">
                   <Mail size={18} className="absolute text-gray-400 transform -translate-y-1/2 left-4 top-1/2" />
@@ -336,7 +336,7 @@ export default function RegisterPage() {
 
               <div>
                 <label className="block mb-1.5 text-sm font-semibold text-gray-700">
-                  Trường đại học
+                  TrÆ°á»ng Ä‘áº¡i há»c
                 </label>
                 <div className="relative">
                   <School size={18} className="absolute text-gray-400 transform -translate-y-1/2 left-4 top-1/2" />
@@ -345,7 +345,7 @@ export default function RegisterPage() {
                     name="university"
                     value={formData.university}
                     onChange={handleChange}
-                    placeholder="VD: ĐH Bách Khoa"
+                    placeholder="VD: ÄH BÃ¡ch Khoa"
                     className={`w-full py-3 pl-12 pr-4 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all ${
                       errors.university ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'
                     }`}
@@ -361,7 +361,7 @@ export default function RegisterPage() {
             {/* Subject Interests */}
             <div>
               <label className="block mb-2 text-sm font-semibold text-gray-700">
-                Môn học yêu thích
+                MÃ´n há»c yÃªu thÃ­ch
               </label>
               <div className="flex flex-wrap gap-2">
                 {subjectOptions.map((subject) => (
@@ -392,7 +392,7 @@ export default function RegisterPage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="block mb-1.5 text-sm font-semibold text-gray-700">
-                  Mật khẩu
+                  Máº­t kháº©u
                 </label>
                 <div className="relative">
                   <Lock size={18} className="absolute text-gray-400 transform -translate-y-1/2 left-4 top-1/2" />
@@ -401,7 +401,7 @@ export default function RegisterPage() {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="Tối thiểu 6 ký tự"
+                    placeholder="Tá»‘i thiá»ƒu 6 kÃ½ tá»±"
                     className={`w-full py-3 pl-12 pr-4 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all ${
                       errors.password ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'
                     }`}
@@ -415,7 +415,7 @@ export default function RegisterPage() {
 
               <div>
                 <label className="block mb-1.5 text-sm font-semibold text-gray-700">
-                  Xác nhận mật khẩu
+                  XÃ¡c nháº­n máº­t kháº©u
                 </label>
                 <div className="relative">
                   <Lock size={18} className="absolute text-gray-400 transform -translate-y-1/2 left-4 top-1/2" />
@@ -424,7 +424,7 @@ export default function RegisterPage() {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    placeholder="Nhập lại mật khẩu"
+                    placeholder="Nháº­p láº¡i máº­t kháº©u"
                     className={`w-full py-3 pl-12 pr-4 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition-all ${
                       errors.confirmPassword ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'
                     }`}
@@ -449,15 +449,15 @@ export default function RegisterPage() {
                   disabled={loading}
                 />
                 <span className="text-sm text-gray-600">
-                  Tôi đồng ý với{' '}
+                  TÃ´i Ä‘á»“ng Ã½ vá»›i{' '}
                   <a href="#" className="font-medium text-slate-600 hover:underline">
-                    Điều khoản sử dụng
+                    Äiá»u khoáº£n sá»­ dá»¥ng
                   </a>{' '}
-                  và{' '}
+                  vÃ {' '}
                   <a href="#" className="font-medium text-slate-600 hover:underline">
-                    Chính sách bảo mật
+                    ChÃ­nh sÃ¡ch báº£o máº­t
                   </a>{' '}
-                  của StudyHub
+                  cá»§a Learn With Us
                 </span>
               </label>
               {errors.terms && (
@@ -473,12 +473,12 @@ export default function RegisterPage() {
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Đang tạo tài khoản...
+                  Äang táº¡o tÃ i khoáº£n...
                 </span>
               ) : (
                 <span className="flex items-center justify-center gap-2">
                   <Sparkles size={18} />
-                  Tạo Tài Khoản Miễn Phí
+                  Táº¡o TÃ i Khoáº£n Miá»…n PhÃ­
                 </span>
               )}
             </button>
@@ -487,12 +487,12 @@ export default function RegisterPage() {
           {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Đã có tài khoản?{' '}
+              ÄÃ£ cÃ³ tÃ i khoáº£n?{' '}
               <Link
                 href="/login"
                 className="font-semibold text-slate-600 hover:text-slate-800 transition-colors"
               >
-                Đăng nhập ngay
+                ÄÄƒng nháº­p ngay
               </Link>
             </p>
             <p className="mt-3 text-sm text-gray-600">
@@ -500,7 +500,7 @@ export default function RegisterPage() {
                 href="/"
                 className="font-medium text-gray-500 hover:text-slate-600 transition-colors"
               >
-                ← Quay lại trang chủ
+                â† Quay láº¡i trang chá»§
               </Link>
             </p>
           </div>
@@ -509,3 +509,4 @@ export default function RegisterPage() {
     </div>
   );
 }
+

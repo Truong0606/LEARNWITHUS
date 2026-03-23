@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -8,37 +8,37 @@ import { BarChart3, Users, BookOpen, MessageSquare, GraduationCap, DollarSign, C
 const adminSidebarItems = [
   {
     icon: BarChart3,
-    heading: 'Tổng quan',
+    heading: 'Tá»•ng quan',
     href: '/admin/dashboard',
   },
   {
     icon: Users,
-    heading: 'Quản lý sinh viên',
+    heading: 'Quáº£n lÃ½ sinh viÃªn',
     href: '/admin/users',
   },
   {
     icon: BookOpen,
-    heading: 'Quản lý nhóm học',
+    heading: 'Quáº£n lÃ½ nhÃ³m há»c',
     href: '/admin/groups',
   },
   {
     icon: MessageSquare,
-    heading: 'Quản lý bài viết',
+    heading: 'Quáº£n lÃ½ bÃ i viáº¿t',
     href: '/admin/posts',
   },
   {
     icon: UserCheck,
-    heading: 'Quản lý Mentor',
+    heading: 'Quáº£n lÃ½ Mentor',
     href: '/admin/mentors',
   },
   {
     icon: CalendarCheck,
-    heading: 'Đơn đặt lịch Mentor',
+    heading: 'ÄÆ¡n Ä‘áº·t lá»‹ch Mentor',
     href: '/admin/mentor-bookings',
   },
   {
     icon: DollarSign,
-    heading: 'Quản lý doanh thu',
+    heading: 'Quáº£n lÃ½ doanh thu',
     href: '/admin/revenue',
   },
 ];
@@ -87,9 +87,10 @@ export default function AdminLayout({
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50">
-      <Sidebar items={adminSidebarItems} title="StudyHub Admin" />
+      <Sidebar items={adminSidebarItems} title="Learn With Us Admin" />
       <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   );
 }
+
 

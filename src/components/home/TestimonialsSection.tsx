@@ -6,7 +6,7 @@ import type { Testimonial } from "@/types/home.types";
 const testimonials: Testimonial[] = [
   {
     content:
-      "Nhờ StudyHub mình tìm được nhóm học Giải tích rất hợp, cùng luyện đề nên tiến bộ nhanh.",
+      "Nhờ Learn With Us mình tìm được nhóm học Giải tích rất hợp, cùng luyện đề nên tiến bộ nhanh.",
     name: "Phương Linh",
     location: "Đại học Bách Khoa",
     rating: 5,
@@ -64,7 +64,7 @@ export default function TestimonialsSection() {
       <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="text-center mb-10">
           <h2 className="mb-4 text-2xl font-bold md:text-3xl">
-            Sinh viên nói gì về StudyHub
+            Sinh viên nói gì về Learn With Us
           </h2>
           <p className="text-white/80">
             Hơn 25.000 sinh viên đã tin tưởng và sử dụng
