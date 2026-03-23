@@ -11,7 +11,7 @@ const path = require('path');
 const serviceAccountPath = path.join(__dirname, '..', 'serviceAccountKey.json');
 
 if (!fs.existsSync(serviceAccountPath)) {
-  console.error('❌ serviceAccountKey.json not found');
+  console.error('L serviceAccountKey.json not found');
   process.exit(1);
 }
 

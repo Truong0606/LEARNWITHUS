@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -8,37 +8,37 @@ import { BarChart3, Users, BookOpen, MessageSquare, GraduationCap, DollarSign, C
 const adminSidebarItems = [
   {
     icon: BarChart3,
-    heading: 'Tá»•ng quan',
+    heading: 'Tổng quan',
     href: '/admin/dashboard',
   },
   {
     icon: Users,
-    heading: 'Quáº£n lÃ½ sinh viÃªn',
+    heading: 'Quản lý sinh viên',
     href: '/admin/users',
   },
   {
     icon: BookOpen,
-    heading: 'Quáº£n lÃ½ nhÃ³m há»c',
+    heading: 'Quản lý nhóm học',
     href: '/admin/groups',
   },
   {
     icon: MessageSquare,
-    heading: 'Quáº£n lÃ½ bÃ i viáº¿t',
+    heading: 'Quản lý bài viết',
     href: '/admin/posts',
   },
   {
     icon: UserCheck,
-    heading: 'Quáº£n lÃ½ Mentor',
+    heading: 'Quản lý Mentor',
     href: '/admin/mentors',
   },
   {
     icon: CalendarCheck,
-    heading: 'ÄÆ¡n Ä‘áº·t lá»‹ch Mentor',
+    heading: 'Đơn đặt lịch Mentor',
     href: '/admin/mentor-bookings',
   },
   {
     icon: DollarSign,
-    heading: 'Quáº£n lÃ½ doanh thu',
+    heading: 'Quản lý doanh thu',
     href: '/admin/revenue',
   },
 ];
@@ -92,5 +92,3 @@ export default function AdminLayout({
     </div>
   );
 }
-
-
