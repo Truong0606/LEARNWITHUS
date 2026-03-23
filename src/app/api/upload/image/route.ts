@@ -1,12 +1,12 @@
-// POST /api/upload/image - Upload image (local storage, no Firebase Storage)
+// POST /api/upload/image - Upload image to Firebase Cloud Storage
 
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/utils';
-import { saveToLocal } from '@/lib/upload-local';
+import { uploadToCloud } from '@/lib/firebase/storage-admin';
 import type { ApiResponse } from '@/types';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_SIZE = 10 * 1024 * 1024; // 10MB (Firebase is more generous than local)
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     if (file.size > MAX_SIZE) {
       return NextResponse.json<ApiResponse<null>>(
-        { data: null, message: 'Ảnh không được vượt quá 5MB', statusCode: 400 },
+        { data: null, message: 'Ảnh không được vượt quá 10MB', statusCode: 400 },
         { status: 400 }
       );
     }
@@ -57,17 +57,26 @@ export async function POST(request: NextRequest) {
     const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const safeExt = ['jpeg', 'jpg', 'png', 'webp'].includes(ext) ? ext : 'jpg';
 
-    const publicUrl = await saveToLocal(buffer, folder, payload.userId, safeExt);
+    // Upload to Firebase Storage
+    const publicUrl = await uploadToCloud(
+      buffer,
+      folder,
+      payload.userId,
+      safeExt,
+      mimeType
+    );
 
     return NextResponse.json<ApiResponse<{ url: string }>>(
-      { data: { url: publicUrl }, message: 'Tải ảnh lên thành công', statusCode: 200 },
+      { data: { url: publicUrl }, message: 'Tải ảnh lên mây thành công', statusCode: 200 },
       { status: 200 }
     );
   } catch (error) {
     const err = error as Error;
+    console.error('Upload image error:', err);
     return NextResponse.json<ApiResponse<null>>(
-      { data: null, message: err.message || 'Lỗi máy chủ khi tải ảnh lên', statusCode: 500 },
+      { data: null, message: 'Lỗi khi đưa ảnh lên mây: ' + err.message, statusCode: 500 },
       { status: 500 }
     );
   }
 }
+

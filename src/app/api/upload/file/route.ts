@@ -1,8 +1,8 @@
-// POST /api/upload/file - Upload document files (PDF, DOCX, JPG, PNG)
+// POST /api/upload/file - Upload document files to Firebase Cloud Storage
 
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/utils';
-import { saveToLocal } from '@/lib/upload-local';
+import { uploadToCloud } from '@/lib/firebase/storage-admin';
 import type { ApiResponse } from '@/types';
 
 const ALLOWED_TYPES: Record<string, string[]> = {
@@ -14,7 +14,7 @@ const ALLOWED_TYPES: Record<string, string[]> = {
 };
 
 const ALLOWED_EXTENSIONS = ['pdf', 'docx', 'doc', 'jpg', 'jpeg', 'png'];
-const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_SIZE = 20 * 1024 * 1024; // 20MB (Firebase is more generous)
 
 export async function POST(request: NextRequest) {
   try {
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     if (file.size > MAX_SIZE) {
       return NextResponse.json<ApiResponse<null>>(
-        { data: null, message: 'Tệp không được vượt quá 10MB', statusCode: 400 },
+        { data: null, message: 'Tệp không được vượt quá 20MB', statusCode: 400 },
         { status: 400 }
       );
     }
@@ -69,7 +69,14 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const safeExt = ALLOWED_EXTENSIONS.includes(ext) ? ext : 'bin';
 
-    const publicUrl = await saveToLocal(buffer, 'documents', payload.userId, safeExt);
+    // Upload to Firebase Storage
+    const publicUrl = await uploadToCloud(
+      buffer,
+      'documents',
+      payload.userId,
+      safeExt,
+      mimeType || 'application/octet-stream'
+    );
 
     return NextResponse.json<ApiResponse<{ url: string; name: string; type: string; size: number }>>(
       {
@@ -79,16 +86,18 @@ export async function POST(request: NextRequest) {
           type: safeExt,
           size: file.size,
         },
-        message: 'Tải tệp lên thành công',
+        message: 'Tải tệp lên mây thành công',
         statusCode: 200,
       },
       { status: 200 }
     );
   } catch (error) {
     const err = error as Error;
+    console.error('Upload file error:', err);
     return NextResponse.json<ApiResponse<null>>(
-      { data: null, message: err.message || 'Lỗi máy chủ khi tải tệp lên', statusCode: 500 },
+      { data: null, message: 'Lỗi khi đưa tệp lên mây: ' + err.message, statusCode: 500 },
       { status: 500 }
     );
   }
 }
+

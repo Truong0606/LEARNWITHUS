@@ -223,9 +223,9 @@ export interface VipPlan {
 }
 
 export const VIP_PLANS: Record<VipPlanId, VipPlan> = {
-  monthly:   { id: 'monthly',   name: 'Hàng tháng', price: 5000,   durationDays: 30,  freeSessionsPerMonth: 2, discountPercent: 10 },
-  quarterly: { id: 'quarterly', name: '3 tháng',    price: 249000, durationDays: 90,  freeSessionsPerMonth: 2, discountPercent: 15 },
-  yearly:    { id: 'yearly',    name: '1 năm',      price: 799000, durationDays: 365, freeSessionsPerMonth: 3, discountPercent: 20 },
+  monthly:   { id: 'monthly',   name: 'Hàng tháng', price: 132000,   durationDays: 30,  freeSessionsPerMonth: 2, discountPercent: 10 },
+  quarterly: { id: 'quarterly', name: '3 tháng',    price: 330000, durationDays: 90,  freeSessionsPerMonth: 2, discountPercent: 15 },
+  yearly:    { id: 'yearly',    name: '1 năm',      price: 1060000, durationDays: 365, freeSessionsPerMonth: 3, discountPercent: 20 },
 };
 
 // Revenue source types for admin revenue dashboard
