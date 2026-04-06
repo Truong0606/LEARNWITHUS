@@ -314,7 +314,6 @@ export default function UpgradePage() {
           </div>
         </div>
 
->>>>>>> 08c089195523f5e41188fdbe21e477891476814d
         {/* FAQ */}
         <div className="mt-16 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
           <h3 className="mb-6 font-semibold text-gray-800">Câu hỏi thường gặp</h3>
