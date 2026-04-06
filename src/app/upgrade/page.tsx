@@ -318,7 +318,8 @@ export default function UpgradePage() {
         <div className="mt-16 rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
           <h3 className="mb-6 font-semibold text-gray-800">Câu hỏi thường gặp</h3>
           <div className="space-y-4">
-            </div>
+            <div>
+              <p className="font-medium text-gray-800">2 buổi Mentor miễn phí được tính thế nào?</p>
               <p className="mt-1 text-sm text-gray-600">
                 Mỗi tháng bạn được đặt 2 buổi tư vấn với bất kỳ mentor nào mà không mất phí. Không dùng hết sẽ không chuyển sang tháng sau.
               </p>
