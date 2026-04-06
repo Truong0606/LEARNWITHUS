@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       .orderBy('membersCount', 'desc')
       .get();
 
-    const groups = groupsSnapshot.docs.map(doc => doc.data() as StudyGroup);
+    const groups = groupsSnapshot.docs.map(doc => ({ ...doc.data() as StudyGroup, id: doc.id }));
 
     // Get actual member counts from groupMembers (status=active)
     const membershipsSnapshot = await adminDb
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
       message: 'Lấy danh sách nhóm học thành công',
       statusCode: 200,
     });
-    res.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
+    // res.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
     return res;
   } catch {
     return NextResponse.json<ApiResponse<null>>(

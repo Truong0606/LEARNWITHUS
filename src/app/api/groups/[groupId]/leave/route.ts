@@ -3,8 +3,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, COLLECTIONS } from '@/lib/firebase/admin';
 import { verifyToken } from '@/lib/utils';
+import { getDocument } from '@/lib/firebase/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
-import type { ApiResponse } from '@/types';
+import type { ApiResponse, StudyGroup } from '@/types';
 
 export async function POST(
   request: NextRequest,
@@ -34,22 +35,20 @@ export async function POST(
     const userId = payload.userId;
 
     // Check group exists
-    const groupDoc = await adminDb
-      .collection(COLLECTIONS.studyGroups)
-      .doc(groupId)
-      .get();
+    const group = await getDocument<StudyGroup>(COLLECTIONS.studyGroups, groupId);
 
-    if (!groupDoc.exists) {
+    if (!group) {
       return NextResponse.json<ApiResponse<null>>(
         { data: null, message: 'Không tìm thấy nhóm học', statusCode: 404 },
         { status: 404 }
       );
     }
+    const actualGroupId = group.id;
 
     // Find membership record
     const membershipSnapshot = await adminDb
       .collection(COLLECTIONS.groupMembers)
-      .where('groupId', '==', groupId)
+      .where('groupId', '==', actualGroupId)
       .where('userId', '==', userId)
       .limit(1)
       .get();
@@ -68,7 +67,7 @@ export async function POST(
     if (memberData.role === 'admin') {
       const adminCount = await adminDb
         .collection(COLLECTIONS.groupMembers)
-        .where('groupId', '==', groupId)
+        .where('groupId', '==', actualGroupId)
         .where('role', '==', 'admin')
         .where('status', '==', 'active')
         .get();
@@ -94,7 +93,7 @@ export async function POST(
       const now = FieldValue.serverTimestamp();
       await adminDb
         .collection(COLLECTIONS.studyGroups)
-        .doc(groupId)
+        .doc(actualGroupId)
         .update({
           membersCount: FieldValue.increment(-1),
           updatedAt: now,

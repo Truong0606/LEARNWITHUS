@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
     );
 
   } catch (error) {
-    console.error('Login API error:', error);
+    console.error('Login error:', error);
     return NextResponse.json<ApiResponse<null>>(
       { data: null, message: 'Lỗi máy chủ', statusCode: 500 },
       { status: 500 }

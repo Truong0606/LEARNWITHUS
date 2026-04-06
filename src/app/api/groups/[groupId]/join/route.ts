@@ -34,25 +34,38 @@ export async function POST(
 
     const userId = payload.userId;
 
-    // Check group exists
-    const groupDoc = await adminDb
+    let groupDoc = await adminDb
       .collection(COLLECTIONS.studyGroups)
       .doc(groupId)
       .get();
 
+    let actualGroupId = groupId;
+
     if (!groupDoc.exists) {
-      return NextResponse.json<ApiResponse<null>>(
-        { data: null, message: 'Không tìm thấy nhóm học', statusCode: 404 },
-        { status: 404 }
-      );
+      // Fallback: search by id field in case they match but document ID is different
+      const fallbackSnapshot = await adminDb
+        .collection(COLLECTIONS.studyGroups)
+        .where('id', '==', groupId)
+        .limit(1)
+        .get();
+
+      if (fallbackSnapshot.empty) {
+        return NextResponse.json<ApiResponse<null>>(
+          { data: null, message: 'Không tìm thấy nhóm học', statusCode: 404 },
+          { status: 404 }
+        );
+      }
+      groupDoc = fallbackSnapshot.docs[0];
+      actualGroupId = groupDoc.id;
     }
 
-    const group = groupDoc.data() as StudyGroup;
+    const group = { ...groupDoc.data() as StudyGroup, id: actualGroupId };
+    const membershipGroupId = actualGroupId; // Use the matched document ID for membership checks
 
     // Check if already a member
     const existingMember = await adminDb
       .collection(COLLECTIONS.groupMembers)
-      .where('groupId', '==', groupId)
+      .where('groupId', '==', actualGroupId)
       .where('userId', '==', userId)
       .limit(1)
       .get();
@@ -82,7 +95,7 @@ export async function POST(
     // Create membership record
     await adminDb.collection(COLLECTIONS.groupMembers).doc(memberId).set({
       id: memberId,
-      groupId,
+      groupId: actualGroupId,
       userId,
       role: 'member',
       status: memberStatus,
@@ -95,7 +108,7 @@ export async function POST(
     if (!group.isPrivate) {
       await adminDb
         .collection(COLLECTIONS.studyGroups)
-        .doc(groupId)
+        .doc(actualGroupId)
         .update({
           membersCount: FieldValue.increment(1),
           updatedAt: now,

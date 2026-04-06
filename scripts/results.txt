@@ -1,0 +1,3 @@
+VIP_EMAIL: vip_p0_033093@gmail.com
+MENTOR_EMAIL: trinhphse170414@fpt.edu.vn
+PASSWORD: 123456

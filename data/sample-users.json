@@ -1,0 +1,19 @@
+[
+  {
+    "fullName": "Admin StudyHub",
+    "email": "admin@studyhub.com",
+    "phone": "0987654321",
+    "address": "TP. Hồ Chí Minh",
+    "passwordHash": "$2a$10$7R4d2f0u3Y4j7k8l9m0n1o2p3q4r5s6t7u8v9w0x1y2z3a4b5c6d7",
+    "role": 1,
+    "isActive": true
+  },
+  {
+    "fullName": "Nguyen Van A",
+    "email": "student_a@fpt.edu.vn",
+    "phone": "0123456789",
+    "address": "FPT HCM",
+    "role": 2,
+    "isActive": true
+  }
+]

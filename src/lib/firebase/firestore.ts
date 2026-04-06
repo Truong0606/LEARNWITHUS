@@ -65,29 +65,42 @@ export async function createDocument<T extends object>(
 ): Promise<string> {
   const id = generateId();
   const now = FieldValue.serverTimestamp();
-  
+
   await adminDb.collection(collection).doc(id).set({
     ...data,
     id,
     createdAt: now,
     updatedAt: now
   });
-  
+
   return id;
 }
 
-// Get document by ID
+// Get document by ID (with fallback to search by "id" field)
 export async function getDocument<T>(
   collection: string,
   id: string
-): Promise<T | null> {
-  const doc = await adminDb.collection(collection).doc(id).get();
-  
-  if (!doc.exists) {
-    return null;
+): Promise<(T & { id: string }) | null> {
+  const docRef = adminDb.collection(collection).doc(id);
+  const doc = await docRef.get();
+
+  if (doc.exists) {
+    return { ...doc.data() as T, id: doc.id };
   }
-  
-  return doc.data() as T;
+
+  // Fallback: Check if there's a document where a field named "id" matches the provided ID
+  const fallbackSnapshot = await adminDb
+    .collection(collection)
+    .where('id', '==', id)
+    .limit(1)
+    .get();
+
+  if (!fallbackSnapshot.empty) {
+    const fallbackDoc = fallbackSnapshot.docs[0];
+    return { ...fallbackDoc.data() as T, id: fallbackDoc.id };
+  }
+
+  return null;
 }
 
 // Update document
@@ -98,16 +111,16 @@ export async function updateDocument<T extends object>(
 ): Promise<boolean> {
   const docRef = adminDb.collection(collection).doc(id);
   const doc = await docRef.get();
-  
+
   if (!doc.exists) {
     return false;
   }
-  
+
   await docRef.update({
     ...data,
     updatedAt: FieldValue.serverTimestamp()
   });
-  
+
   return true;
 }
 
@@ -118,11 +131,11 @@ export async function deleteDocument(
 ): Promise<boolean> {
   const docRef = adminDb.collection(collection).doc(id);
   const doc = await docRef.get();
-  
+
   if (!doc.exists) {
     return false;
   }
-  
+
   await docRef.delete();
   return true;
 }
@@ -142,24 +155,24 @@ export async function getAllDocuments<T>(
   }
 ): Promise<T[]> {
   let query: FirebaseFirestore.Query = adminDb.collection(collection);
-  
+
   // Apply where filters
   if (options?.where) {
     for (const condition of options.where) {
       query = query.where(condition.field, condition.operator, condition.value);
     }
   }
-  
+
   // Apply ordering
   if (options?.orderBy) {
     query = query.orderBy(options.orderBy, options.orderDirection || 'desc');
   }
-  
+
   // Apply limit
   if (options?.limit) {
     query = query.limit(options.limit);
   }
-  
+
   const snapshot = await query.get();
   return snapshot.docs.map(doc => doc.data() as T);
 }
@@ -180,18 +193,18 @@ export async function getPaginatedDocuments<T>(
   }
 ): Promise<{ items: T[]; lastDocId: string | null; hasMore: boolean }> {
   let query: FirebaseFirestore.Query = adminDb.collection(collection);
-  
+
   // Apply where filters
   if (options.where) {
     for (const condition of options.where) {
       query = query.where(condition.field, condition.operator, condition.value);
     }
   }
-  
+
   // Apply ordering
   const orderField = options.orderBy || 'createdAt';
   query = query.orderBy(orderField, options.orderDirection || 'desc');
-  
+
   // Start after last document if paginating
   if (options.lastDocId) {
     const lastDoc = await adminDb.collection(collection).doc(options.lastDocId).get();
@@ -199,22 +212,22 @@ export async function getPaginatedDocuments<T>(
       query = query.startAfter(lastDoc);
     }
   }
-  
+
   // Get one more than needed to check if there are more
   query = query.limit(options.pageSize + 1);
-  
+
   const snapshot = await query.get();
   const docs = snapshot.docs;
   const hasMore = docs.length > options.pageSize;
-  
+
   // Remove the extra document
   if (hasMore) {
     docs.pop();
   }
-  
+
   const items = docs.map(doc => doc.data() as T);
   const lastDocId = docs.length > 0 ? docs[docs.length - 1].id : null;
-  
+
   return { items, lastDocId, hasMore };
 }
 
@@ -229,11 +242,11 @@ export async function batchWrite(
 ): Promise<void> {
   const batch = adminDb.batch();
   const now = FieldValue.serverTimestamp();
-  
+
   for (const op of operations) {
     const id = op.id || generateId();
     const docRef = adminDb.collection(op.collection).doc(id);
-    
+
     switch (op.type) {
       case 'create':
         batch.set(docRef, {
@@ -254,7 +267,7 @@ export async function batchWrite(
         break;
     }
   }
-  
+
   await batch.commit();
 }
 
@@ -268,13 +281,13 @@ export async function countDocuments(
   }[]
 ): Promise<number> {
   let query: FirebaseFirestore.Query = adminDb.collection(collection);
-  
+
   if (where) {
     for (const condition of where) {
       query = query.where(condition.field, condition.operator, condition.value);
     }
   }
-  
+
   const snapshot = await query.count().get();
   return snapshot.data().count;
 }

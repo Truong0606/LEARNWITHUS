@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, COLLECTIONS } from '@/lib/firebase/admin';
 import { verifyToken } from '@/lib/utils';
+import { getDocument } from '@/lib/firebase/firestore';
 import { FieldValue } from 'firebase-admin/firestore';
 import type { ApiResponse, StudyGroup, GroupMember } from '@/types';
 import { User, UserRole } from '@/types';
@@ -35,19 +36,15 @@ export async function PATCH(
     const mentorId = payload.userId;
 
     // Get group
-    const groupDoc = await adminDb
-      .collection(COLLECTIONS.studyGroups)
-      .doc(groupId)
-      .get();
+    const group = await getDocument<StudyGroup>(COLLECTIONS.studyGroups, groupId);
 
-    if (!groupDoc.exists) {
+    if (!group) {
       return NextResponse.json<ApiResponse<null>>(
         { data: null, message: 'Không tìm thấy nhóm học', statusCode: 404 },
         { status: 404 }
       );
     }
-
-    const group = groupDoc.data() as StudyGroup;
+    const actualGroupId = group.id;
 
     // Only group creator (mentor) can approve - and group must be private
     if (group.createdBy !== mentorId) {
@@ -106,7 +103,7 @@ export async function PATCH(
     }
 
     const member = memberDoc.data() as GroupMember;
-    if (member.groupId !== groupId) {
+    if (member.groupId !== actualGroupId) {
       return NextResponse.json<ApiResponse<null>>(
         { data: null, message: 'Yêu cầu không thuộc nhóm này', statusCode: 400 },
         { status: 400 }
@@ -131,7 +128,7 @@ export async function PATCH(
     // Increment group members count
     await adminDb
       .collection(COLLECTIONS.studyGroups)
-      .doc(groupId)
+      .doc(actualGroupId)
       .update({
         membersCount: FieldValue.increment(1),
         updatedAt: now,

@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { adminDb, COLLECTIONS } from '@/lib/firebase/admin';
 import { verifyToken } from '@/lib/utils';
+import { getDocument } from '@/lib/firebase/firestore';
 import type { ApiResponse, StudyGroup, GroupMember } from '@/types';
 import { User, UserRole } from '@/types';
 
@@ -41,19 +42,15 @@ export async function GET(
 
     const mentorId = payload.userId;
 
-    const groupDoc = await adminDb
-      .collection(COLLECTIONS.studyGroups)
-      .doc(groupId)
-      .get();
+    const group = await getDocument<StudyGroup>(COLLECTIONS.studyGroups, groupId);
 
-    if (!groupDoc.exists) {
+    if (!group) {
       return NextResponse.json<ApiResponse<null>>(
         { data: null, message: 'Không tìm thấy nhóm học', statusCode: 404 },
         { status: 404 }
       );
     }
-
-    const group = groupDoc.data() as StudyGroup;
+    const actualGroupId = group.id;
 
     if (group.createdBy !== mentorId) {
       return NextResponse.json<ApiResponse<null>>(
@@ -98,7 +95,7 @@ export async function GET(
 
     const pendingSnapshot = await adminDb
       .collection(COLLECTIONS.groupMembers)
-      .where('groupId', '==', groupId)
+      .where('groupId', '==', actualGroupId)
       .where('status', '==', 'pending')
       .get();
 
