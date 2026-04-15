@@ -80,10 +80,19 @@ function baseTemplate(content: string): string {
   `;
 }
 
+function escapeHtml(input: string): string {
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // OTP Email Template
 export function otpEmailTemplate(otp: string, purpose: 'reset' | 'verify'): EmailTemplate {
-  const purposeText = purpose === 'reset' 
-    ? 'đặt lại mật khẩu' 
+  const purposeText = purpose === 'reset'
+    ? 'đặt lại mật khẩu'
     : 'xác thực tài khoản';
 
   const content = `
@@ -124,10 +133,10 @@ export function bookingStatusTemplate(
   status: BookingStatus
 ): EmailTemplate {
   const statusLabel = BookingStatusLabels[status] || 'Đang xử lý';
-  
+
   let statusMessage = '';
   let actionButton = '';
-  
+
   switch (status) {
     case BookingStatus.DepositPaid:
       statusMessage = 'Đơn hàng của bạn đã được thanh toán đặt cọc thành công. Chúng tôi đang chuẩn bị kit xét nghiệm.';
@@ -264,6 +273,48 @@ export function welcomeEmailTemplate(fullName: string): EmailTemplate {
   };
 }
 
+// Group Invite Email Template
+export function groupInviteEmailTemplate(params: {
+  groupName: string;
+  inviterName: string;
+  inviteUrl: string;
+  message?: string;
+}): EmailTemplate {
+  const safeGroupName = escapeHtml(params.groupName);
+  const safeInviterName = escapeHtml(params.inviterName);
+  const safeMessage = params.message ? escapeHtml(params.message) : '';
+  const formattedMessage = safeMessage ? safeMessage.replace(/\n/g, '<br />') : '';
+
+  const messageBlock = safeMessage
+    ? `
+      <div class="info-box">
+        <p style="margin: 0 0 6px 0;"><strong>Lời nhắn:</strong></p>
+        <p style="margin: 0;">${formattedMessage}</p>
+      </div>
+    `
+    : '';
+
+  const content = `
+    <h2>🎉 Bạn được mời tham gia nhóm học!</h2>
+    <p>Xin chào,</p>
+    <p><span class="highlight">${safeInviterName}</span> đã mời bạn tham gia nhóm <strong>${safeGroupName}</strong> trên StudyHub.</p>
+
+    ${messageBlock}
+
+    <div style="text-align: center;">
+      <a href="${params.inviteUrl}" class="button">Tham gia nhóm</a>
+    </div>
+
+    <p>Nếu bạn không muốn tham gia, bạn có thể bỏ qua email này.</p>
+  `;
+
+  return {
+    subject: `Lời mời tham gia nhóm ${safeGroupName} trên StudyHub`,
+    html: baseTemplate(content),
+    text: `Ban duoc moi tham gia nhom ${params.groupName} tren StudyHub. Link tham gia: ${params.inviteUrl}${params.message ? `\nLoi nhan: ${params.message}` : ''}`,
+  };
+}
+
 // Send email function
 export async function sendEmail(
   to: string,
@@ -285,9 +336,9 @@ export async function sendEmail(
 
     return { success: true, messageId: info.messageId };
   } catch (err) {
-    return { 
-      success: false, 
-      error: err instanceof Error ? err.message : 'Unknown error' 
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Unknown error'
     };
   }
 }
@@ -319,4 +370,16 @@ export async function sendResultReadyEmail(
 
 export async function sendWelcomeEmail(to: string, fullName: string) {
   return sendEmail(to, welcomeEmailTemplate(fullName));
+}
+
+export async function sendGroupInviteEmail(
+  to: string,
+  params: {
+    groupName: string;
+    inviterName: string;
+    inviteUrl: string;
+    message?: string;
+  }
+) {
+  return sendEmail(to, groupInviteEmailTemplate(params));
 }

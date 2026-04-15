@@ -312,6 +312,12 @@ export default function GroupDetailPage() {
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
   const [currentUserIsVip, setCurrentUserIsVip] = useState(false);
   const [memberActionLoading, setMemberActionLoading] = useState<string | null>(null);
+  
+  // Invite Modal State
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteMessage, setInviteMessage] = useState('');
+  const [inviteLoading, setInviteLoading] = useState(false);
 
   const isMember = group?.userMembershipStatus === 'member';
   const isAdmin = group?.userMemberRole === 'admin';
@@ -508,6 +514,44 @@ export default function GroupDetailPage() {
     } finally {
       setMemberActionLoading(null);
     }
+  };
+
+  const handleInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    if (!token || !inviteEmail) return;
+
+    setInviteLoading(true);
+    try {
+      const res = await fetch(`/api/groups/${groupId}/invite`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: inviteEmail, message: inviteMessage }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert('Đã gửi lời mời thành công!');
+        setShowInviteModal(false);
+        setInviteEmail('');
+        setInviteMessage('');
+      } else {
+        alert(data.message || 'Không thể gửi lời mời');
+      }
+    } catch {
+      alert('Lỗi kết nối. Vui lòng thử lại.');
+    } finally {
+      setInviteLoading(false);
+    }
+  };
+
+  const handleShare = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url);
+    alert('Đã sao chép liên kết nhóm!');
   };
 
   const pendingCount = group?.pendingMembers?.length || 0;
@@ -982,10 +1026,16 @@ export default function GroupDetailPage() {
                   >
                     <Plus size={16} /> Tạo bài viết
                   </Link>
-                  <button className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-slate-50 hover:text-slate-600 rounded-xl transition-colors">
+                  <button 
+                    onClick={() => setShowInviteModal(true)}
+                    className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-slate-50 hover:text-slate-600 rounded-xl transition-colors"
+                  >
                     <UserPlus size={16} /> Mời bạn bè
                   </button>
-                  <button className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-slate-50 hover:text-slate-600 rounded-xl transition-colors">
+                  <button 
+                    onClick={handleShare}
+                    className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-slate-50 hover:text-slate-600 rounded-xl transition-colors"
+                  >
                     <Share2 size={16} /> Chia sẻ nhóm
                   </button>
                 </div>
@@ -1036,6 +1086,73 @@ export default function GroupDetailPage() {
         onConfirm={handleLeave}
         onCancel={() => !actionLoading && setShowLeaveModal(false)}
       />
+
+      {/* Invite Modal */}
+      {showInviteModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => !inviteLoading && setShowInviteModal(false)}
+          />
+          <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setShowInviteModal(false)}
+              className="absolute top-4 right-4 p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+            >
+              <X size={18} />
+            </button>
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center justify-center w-14 h-14 mb-4 bg-slate-100 rounded-2xl text-slate-600">
+                <UserPlus size={24} />
+              </div>
+              <h3 className="text-lg font-bold text-gray-800">Mời thành viên</h3>
+              <p className="text-sm text-gray-500">Mời bạn bè tham gia nhóm qua email</p>
+            </div>
+            
+            <form onSubmit={handleInvite} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">
+                  Email người nhận
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="name@example.com"
+                  className="w-full px-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500/10 focus:border-slate-500 transition-all"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5 ml-1">
+                  Lời nhắn (tùy chọn)
+                </label>
+                <textarea
+                  placeholder="Chào bạn, tham gia nhóm học với mình nhé!"
+                  rows={3}
+                  className="w-full px-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-500/10 focus:border-slate-500 transition-all resize-none"
+                  value={inviteMessage}
+                  onChange={(e) => setInviteMessage(e.target.value)}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={inviteLoading}
+                className="w-full py-3 text-sm font-semibold text-white bg-slate-800 rounded-xl hover:bg-slate-900 shadow-lg shadow-slate-200 hover:shadow-xl transition-all disabled:opacity-50"
+              >
+                {inviteLoading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 size={16} className="animate-spin" />
+                    Đang gửi...
+                  </span>
+                ) : (
+                  'Gửi lời mời'
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
